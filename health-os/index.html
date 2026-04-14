@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Health OS ✨ — Myra</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #fffbf4; font-family: 'DM Sans', sans-serif; }
+    ::-webkit-scrollbar { display: none; }
+    button { font-family: 'DM Sans', sans-serif; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    const T = {
+      sun:"#f59e0b", sunL:"#fffbeb", peach:"#f97316", peachL:"#fff7ed",
+      coral:"#ef4444", sage:"#16a34a", sageL:"#f0fdf4", sky:"#0ea5e9",
+      skyL:"#f0f9ff", lav:"#8b5cf6", lavL:"#f5f3ff",
+      ink:"#1c1917", muted:"#78716c", border:"#e7d5c0", card:"#ffffff",
+      bg:"#fffbf4",
+    };
+
+    const MORNING = [
+      "You are building a body that will carry you for decades. Every choice today is a vote for future-you. 🌅",
+      "You are not starting over — you are continuing with more self-knowledge than yesterday. 💛",
+      "1,745 logged sessions. You are someone who shows up. That is already extraordinary. 🏋️",
+      "Health is not a destination. You are living it right now, in every small decision. ✨",
+      "Your blood results are moving in the right direction. The work is paying off. Keep going. 📈",
+      "You are allowed to take up space. In the gym, at the table, in the world. 🌸",
+      "Every meal you cook for yourself is an act of love. You are worth the effort. 🍳",
+    ];
+    const EVENING = [
+      "You did enough today. Whatever happened, you showed up. That counts. 🌙",
+      "Rest is not laziness. Sleep is when your body does the work you asked of it. 💜",
+      "Name one thing your body did well today. It kept you going. That is remarkable. 🤍",
+      "You don't have to earn your sleep. Rest is yours. 😴",
+      "Let tomorrow worry about itself. Right now, just breathe. 🌿",
+      "Your worth is not measured in macros or miles. You are whole, right now. ✨",
+      "Progress is not linear. Today was part of it either way. 🌙",
+    ];
+
+    const DEFAULT_DAYS = [
+      {
+        id:"mon14", short:"MON", date:"14 APR", label:"Gentle Re-entry Day", emoji:"🧘",
+        accent:T.sky, accentL:T.skyL, iron:false, oven:false, foodPlan:false,
+        note:"Rough night + no supplements today — be kind to yourself. Yoga is perfect.",
+        meals:{
+          breakfast:{ name:"Banana + almond butter", note:"Easy, no prep. Eat before the 9:30 meeting — empty stomach + meeting is not a combo." },
+          lunch:{ name:"Light and easy — whatever he has", note:"Don't overthink it. Protein where you can get it." },
+          dinner:{ name:"Flexible — his cooking", note:"Enjoy it. Protein anchor as always." },
+          snacks:"Water first. Lots of it.",
+        },
+        workout:{ type:"Yoga 🧘 + optional short Pilates", duration:"30–45 min yoga + optional 15 min Pilates", weighted:false, views:["Yoga view — full session","Pilates view (optional, bodyweight only)"], note:"Gentle re-entry. Rough night = honour that. Even 20 min yoga counts. Full body week starts properly Tuesday.", accent:T.sky, isRest:false },
+        supplements:["💊 No supplements today — at boyfriend's, all at your flat.","✅ Completely fine. One day won't derail anything.","🌙 Grab magnesium if he has any — otherwise just sleep early."],
+        bedtime:"Early tonight. You need it. Aim for 10pm if you can manage it.",
+      },
+      {
+        id:"tue15", short:"TUE", date:"15 APR", label:"Office Day — Plan Starts! 🎉", emoji:"💼",
+        accent:T.peach, accentL:T.peachL, iron:false, oven:true, foodPlan:true,
+        alert:"🚨 BREAKFAST DANGER ZONE — pack a banana + almond butter before you leave his. Do not buy a pastry.",
+        meals:{
+          breakfast:{ name:"PACKED FROM HIS: Banana + almond butter", note:"Grab it on the way out the door. Eat on the train or at your desk. No pastries. 🍌" },
+          lunch:{ name:"Grab from Waitrose near office — protein focus", note:"Grilled chicken salad or protein pot. Avoid meal deals — low protein, high cost." },
+          dinner:{ name:"Sheet pan cod + cherry tomatoes + courgette + olive oil", note:"Oven on when you get home. Fresh fish = eat tonight only. Back at yours by evening ✅", prep:"35 min oven" },
+          snacks:"Rice cakes + almond butter (pick up from yours when you get in)",
+        },
+        workout:{ type:"Arms 💪 + Full Body HIIT + yoga cooldown", duration:"15 min Arms + 10 min HIIT + 5 min yoga = 30 min MAX", weighted:true, views:["Arms view → 💪 weighted","Full Body HIIT view","Yoga view — short 5 min"], note:"Oven on first, then work out. 30 min = dinner ready, session done. Arms safe this week — legs resting for Friday PT.", accent:T.peach, isRest:false },
+        supplements:["⚠️ NO MORNING SUPPLEMENTS — not back at yours until this evening.","✅ EVENING (once home):","🔵 B12 sublingual — take tonight, restart the daily habit","☀️ Vitamin D 4000 IU with dinner","🟢 Quercetin with dinner","💜 Magnesium glycinate at bedtime","🔴 Iron — skip today, start alternating schedule from Wednesday"],
+        bedtime:"You're home! Familiar bed. Early night — 10:30 wind down, 11pm out.",
+      },
+      {
+        id:"wed16", short:"WED", date:"16 APR", label:"WFH — Full Routine Resumes ✅", emoji:"🌀",
+        accent:T.sun, accentL:T.sunL, iron:true, oven:true, foodPlan:true,
+        alert:"⏰ Oven on 6:30–7pm → workout → eat by 8pm → your evening starts",
+        note:"Full supplement routine back today. Fresh start. 🌸",
+        meals:{
+          breakfast:{ name:"Late breakfast 11–12: banana + almond butter or protein smoothie", note:"Banana + almond butter is fine here too. Smoothie if you want variety: banana + almond milk + almond butter + spinach + protein powder." },
+          lunch:{ name:"Graze: cold chicken from fridge · apple · walnuts", note:"Protein-anchored grazing only. Not biscuits. 👀" },
+          dinner:{ name:"Turkey mince + tinned tomatoes + courgette + garlic + brown rice", note:"Make EXTRA — becomes Thursday office lunch. Cumin + paprika. Turkey stores overnight ✅", prep:"30 min" },
+          snacks:"Apple + walnuts",
+        },
+        workout:{ type:"Abs + Lower Abs + yoga cooldown", duration:"20 min Abs + 15 min Lower Abs + 10 min yoga = 45 min", weighted:false, views:["Abs view","Lower Abs view","Yoga view — cooldown"], note:"Core completely fresh by Wednesday. Hit it. Arms Tuesday, legs resting for Friday. Bodyweight is plenty.", accent:T.sun, isRest:false },
+        supplements:["🔵 B12 sublingual — first thing, every morning from now","🟡 Vitamin C (OJ or lemon in water until you get tablets)","🦴 Collagen 30–60 min before workout","☀️ Vitamin D 4000 IU with dinner","🟢 Quercetin with dinner","🔴 IRON DAY — with vit C, 2hrs from coffee","💜 Magnesium glycinate at bedtime"],
+        bedtime:"Front-load the evening. Eat by 8pm = real time for yourself. Bed by 11pm.",
+      },
+      {
+        id:"thu17", short:"THU", date:"17 APR", label:"Office + REST Day", emoji:"🌿",
+        accent:T.sage, accentL:T.sageL, iron:false, oven:true, foodPlan:true,
+        alert:"🚨 PACK BREAKFAST BEFORE LEAVING — banana + almond butter. Same rules as Tuesday.",
+        meals:{
+          breakfast:{ name:"PACKED: Banana + almond butter", note:"Grab it on the way out. Eat on the train or at desk." },
+          lunch:{ name:"BRING: Wednesday turkey mince + brown rice + spinach", note:"Cooked last night, within 24h ✅. Cold or reheated." },
+          dinner:{ name:"Baked salmon + roasted Mediterranean veg — lighter carbs", note:"Rest day = ease off starchy carbs. Veg bag + olive oil + lemon. Fresh salmon tonight only.", prep:"35 min oven" },
+          snacks:"Rice cakes + almond butter at office",
+        },
+        workout:null,
+        supplements:["🔵 B12 sublingual — first thing","🟡 Vitamin C","☀️ Vitamin D 4000 IU with dinner","🟢 Quercetin with dinner","💜 Magnesium glycinate at bedtime","⏭️ No iron today"],
+        bedtime:"Early night. PT tomorrow. Go in rested.",
+      },
+      {
+        id:"fri18", short:"FRI", date:"18 APR", label:"PT Day — Full Body 💪", emoji:"🏋️",
+        accent:T.coral, accentL:T.peachL, iron:false, oven:false, foodPlan:true,
+        alert:"🦴 Collagen 30–60 min BEFORE leaving for PT. Set a reminder right now.",
+        meals:{
+          breakfast:{ name:"3 eggs + sourdough + avocado — make time today", note:"PT day = proper breakfast matters. Worth the 8 minutes. After collagen." },
+          lunch:{ name:"Post-PT: cold chicken + quinoa + spinach salad", note:"Eat within 1–2 hrs of finishing. Protein window matters today." },
+          dinner:{ name:"Flexible — boyfriend's or home", note:"His: protein anchor + enjoy it. Home: chicken thighs + sweet potato + broccoli.", prep:null },
+          snacks:"Banana pre-PT if training early",
+        },
+        workout:{ type:"Personal trainer — full body 💪", duration:"Your trainer session", weighted:true, views:[], note:"Arms Tue, core Wed, full rest Thu. Firing on all cylinders. Push the deadlift today.", accent:T.coral, isRest:false },
+        supplements:["🔵 B12 sublingual — first thing","🟡 Vitamin C","🦴 Collagen 30–60 min BEFORE PT","☀️ Vitamin D 4000 IU with dinner","🟢 Quercetin with dinner","💜 Magnesium glycinate at bedtime","⏭️ No iron today"],
+        bedtime:"Weekend. Enjoy. Try not to blow past midnight. 😄",
+      },
+      {
+        id:"sat19", short:"SAT", date:"19 APR", label:"Recovery Day", emoji:"🧘",
+        accent:T.lav, accentL:T.lavL, iron:true, oven:false, foodPlan:false,
+        meals:{
+          breakfast:{ name:"Eggs + avocado + sourdough", note:"Weekend — take your time with it." },
+          lunch:null,
+          dinner:{ name:"Flexible", note:"Cook something you enjoy. Protein at the centre." },
+          snacks:null,
+        },
+        workout:{ type:"Full dedicated yoga or Pilates session", duration:"45 min — no rushing", weighted:false, views:["Yoga view — full session","Pilates view (bodyweight only)"], note:"Saturday is always a full restorative session. After PT Friday your body needs this. Take your time.", accent:T.lav, isRest:false },
+        supplements:["🔵 B12 sublingual — first thing","🟡 Vitamin C","☀️ Vitamin D 4000 IU with dinner","🟢 Quercetin with dinner","🔴 IRON DAY","💜 Magnesium glycinate at bedtime"],
+        bedtime:"Weekend but keep it reasonable. You'll thank yourself Monday.",
+      },
+      {
+        id:"sun20", short:"SUN", date:"20 APR", label:"Planning Day 📋", emoji:"🌸",
+        accent:T.sage, accentL:T.sageL, iron:false, oven:false, foodPlan:false,
+        meals:{
+          breakfast:{ name:"Eggs + avocado + sourdough or smoothie", note:"Sunday reset breakfast. Make it properly." },
+          lunch:null,
+          dinner:{ name:"Simple cook + batch prep for the week", note:"One batch cook sets the tone for the whole week." },
+          snacks:null,
+        },
+        workout:{ type:"Pilates + yoga cooldown", duration:"30 min Pilates + 10 min yoga = 40 min", weighted:false, views:["Pilates view (bodyweight only)","Yoga view — cooldown"], note:"Do your session, then message Dr. Candid with how the week went. Sunday = session + check-in. That's the ritual.", accent:T.sage, isRest:false },
+        supplements:["🔵 B12 sublingual — first thing","🟡 Vitamin C","☀️ Vitamin D 4000 IU with dinner","🟢 Quercetin with dinner","💜 Magnesium glycinate at bedtime","⏭️ No iron today"],
+        bedtime:"10:30pm wind down. 11pm lights out. New week tomorrow.",
+      },
+    ];
+
+    const MARKERS = [
+      {label:"Vitamin D", value:"26.4", unit:"ng/mL", status:"warn", note:"Up from 18.1 in June ✅ Still not at >30 target. Keep 4000 IU daily until July retest.", icon:"☀️"},
+      {label:"B12", value:"283", unit:"pg/mL", status:"warn", note:"Optimal is 400+. Sublingual methylcobalamin every single morning.", icon:"🔵"},
+      {label:"Ferritin", value:"48.7", unit:"ng/mL", status:"warn", note:"Within range but 70–100 is optimal for your training load. Keep alternating-day iron.", icon:"🔴"},
+      {label:"Eosinophils", value:"9.4", unit:"%", status:"alert", note:"Flagged across 4 blood draws over 2 years. Book the allergy referral. It's overdue.", icon:"🚨"},
+      {label:"TSH", value:"0.498", unit:"µIU/mL", status:"good", note:"Thyroid completely fine. Nothing to do here.", icon:"✅"},
+      {label:"ALT (Liver)", value:"10", unit:"U/L", status:"good", note:"Liver looking excellent. All metabolic markers clean.", icon:"✅"},
+      {label:"WBC", value:"11.9", unit:"x10⁹/L", status:"warn", note:"Just above normal range. Mention at allergy referral.", icon:"⚠️"},
+      {label:"MCH", value:"26.1", unit:"pg", status:"warn", note:"Low — red cells slightly underfilled. Iron utilisation issue even with supplementing.", icon:"⚠️"},
+    ];
+
+    const STATS = [
+      {l:"Steps", v:"11,452", s:"daily avg", c:T.sage},
+      {l:"Sleep", v:"6.6h", s:"target 7.25h", c:T.peach},
+      {l:"Resting HR", v:"69.6", s:"bpm avg", c:T.sky},
+      {l:"HRV", v:"36.9ms", s:"peak 89.6ms", c:T.sun},
+      {l:"VO₂ Max", v:"24.7", s:"needs work", c:T.coral},
+      {l:"Workouts", v:"1,745", s:"sessions total", c:T.lav},
+    ];
+
+    const RULES = [
+      {icon:"🥩", t:"Protein 100–110g daily", d:"Anchor every meal around protein. Non-negotiable."},
+      {icon:"🍌", t:"Portable breakfast always", d:"Banana + almond butter packed from home. No pastries, no skipping. Zero prep needed."},
+      {icon:"⏰", t:"Coffee curfew 2pm", d:"Afternoon = peppermint or rooibos. Caffeine half-life is 5–6 hours."},
+      {icon:"⏱", t:"Oven on by 6:30–7pm WFH", d:"Front-load the evening. Workout while it cooks. Eat by 8pm = real evening for yourself."},
+      {icon:"😴", t:"Magnesium glycinate every night", d:"Every night without exception. Set it next to your bed."},
+      {icon:"🔵", t:"B12 sublingual every morning", d:"Not 'most days'. Every day. Level is 283 — daily is the fix."},
+      {icon:"☀️", t:"Vitamin D 4000 IU daily", d:"Both tablets with biggest meal. Until July retest."},
+      {icon:"🐟", t:"Fish = same day only", d:"Cook fresh, eat tonight. No tinned, no leftovers overnight. Histamine."},
+      {icon:"🥛", t:"Oat milk max 2×/week", d:"One carton should last the whole week. Always with food."},
+      {icon:"🧀", t:"Mozzarella — small portions only", d:"1–1.5 tbsp max. Weaning not quitting. 📉"},
+      {icon:"🔴", t:"Iron: Wed/Fri/Sun alternating", d:"With vitamin C, 2hrs minimum from coffee."},
+      {icon:"🦴", t:"Collagen pre-workout", d:"30–60 min before training or PT. Time it properly."},
+      {icon:"🏋️", t:"Thursday = REST always", d:"No exceptions. Go into Friday PT completely fresh."},
+      {icon:"📋", t:"Book allergy referral", d:"4 blood draws, 2 years. This week. Actually do it."},
+    ];
+
+    const sColor = s => ({good:T.sage, warn:T.sun, alert:T.coral}[s] || T.muted);
+    const sLabel = s => ({good:"✅ Good", warn:"⚠️ Watch", alert:"🚨 Act"}[s] || "");
+
+    function FadeIn({ children, delay = 0, style = {} }) {
+      const [v, setV] = useState(false);
+      useEffect(() => { const t = setTimeout(() => setV(true), delay); return () => clearTimeout(t); }, [delay]);
+      return (
+        <div style={{ opacity:v?1:0, transform:v?"translateY(0)":"translateY(10px)", transition:"opacity 0.4s ease, transform 0.4s ease", ...style }}>
+          {children}
+        </div>
+      );
+    }
+
+    function SlideIn({ children, delay = 0 }) {
+      const [v, setV] = useState(false);
+      useEffect(() => { const t = setTimeout(() => setV(true), delay); return () => clearTimeout(t); }, [delay]);
+      return (
+        <div style={{ opacity:v?1:0, transform:v?"translateX(0)":"translateX(-12px)", transition:"opacity 0.35s ease, transform 0.35s ease" }}>
+          {children}
+        </div>
+      );
+    }
+
+    function Card({ children, color = T.peach, onClick, style = {} }) {
+      const [h, setH] = useState(false);
+      return (
+        <div onClick={onClick} onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)}
+          style={{ transform:h?"translateY(-2px)":"translateY(0)", boxShadow:h?`0 8px 24px ${color}20`:"0 2px 8px rgba(0,0,0,0.04)", transition:"all 0.2s ease", cursor:onClick?"pointer":"default", ...style }}>
+          {children}
+        </div>
+      );
+    }
+
+    function App() {
+      const [days, setDays] = useState(DEFAULT_DAYS);
+      const [dayIdx, setDayIdx] = useState(0);
+      const [nav, setNav] = useState("week");
+      const [tab, setTab] = useState("meals");
+      const [expanded, setExpanded] = useState(null);
+      const [morning, setMorning] = useState(new Date().getHours() < 17);
+      const [weekLabel, setWeekLabel] = useState("FULL BODY WEEK");
+      const aIdx = useRef(Math.floor(Math.random() * MORNING.length)).current;
+
+      useEffect(() => {
+        try {
+          const saved = localStorage.getItem("myra-healthos-v2");
+          if (saved) {
+            const p = JSON.parse(saved);
+            if (p.days) setDays(p.days);
+            if (p.weekLabel) setWeekLabel(p.weekLabel);
+          }
+        } catch(e) {}
+      }, []);
+
+      const day = days[dayIdx];
+
+      return (
+        <div style={{ fontFamily:"'DM Sans',sans-serif", background:T.bg, minHeight:"100vh", maxWidth:480, margin:"0 auto", color:T.ink }}>
+
+          {/* HEADER */}
+          <div style={{ padding:"18px 20px 14px", background:"linear-gradient(135deg,#fffbf0,#fff3e0)", borderBottom:`2px solid ${T.border}`, position:"sticky", top:0, zIndex:30 }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
+              <FadeIn>
+                <div style={{ fontSize:9, letterSpacing:4, color:T.peach, fontWeight:600, marginBottom:3 }}>DR. CANDID × MYRA</div>
+                <div style={{ fontSize:26, fontWeight:900, letterSpacing:-0.5, color:T.ink, fontFamily:"'Playfair Display',serif", lineHeight:1 }}>Health OS ✨</div>
+              </FadeIn>
+              <FadeIn delay={100} style={{ textAlign:"right" }}>
+                <div style={{ fontSize:10, color:T.muted, fontWeight:300 }}>14–20 APR 2026</div>
+                <div style={{ background:`linear-gradient(135deg,${T.sun},${T.peach})`, color:"#fff", fontSize:9, padding:"3px 10px", borderRadius:20, marginTop:5, display:"inline-block", letterSpacing:1, fontWeight:600 }}>{weekLabel}</div>
+              </FadeIn>
+            </div>
+          </div>
+
+          {/* AFFIRMATION */}
+          <FadeIn delay={120}>
+            <div style={{ background:`linear-gradient(135deg,${T.peachL},${T.sunL})`, borderBottom:`1px solid ${T.border}`, padding:"14px 20px" }}>
+              <div style={{ display:"flex", gap:8, marginBottom:10 }}>
+                {["🌅 Morning","🌙 Evening"].map((l,i) => (
+                  <button key={i} onClick={() => setMorning(i===0)} style={{ padding:"4px 14px", border:`1.5px solid ${morning===(i===0)?T.peach:T.border}`, borderRadius:20, background:morning===(i===0)?T.peach:"transparent", color:morning===(i===0)?"#fff":T.muted, fontSize:10, cursor:"pointer", fontWeight:500, transition:"all 0.2s" }}>{l}</button>
+                ))}
+              </div>
+              <div style={{ fontSize:14, color:T.ink, lineHeight:1.7, fontFamily:"'Playfair Display',serif", fontStyle:"italic" }}>
+                {morning ? MORNING[aIdx % MORNING.length] : EVENING[aIdx % EVENING.length]}
+              </div>
+            </div>
+          </FadeIn>
+
+          {/* NAV */}
+          <div style={{ display:"flex", background:"#fff", borderBottom:`2px solid ${T.border}`, position:"sticky", top:"96px", zIndex:20 }}>
+            {[["week","📅 Week"],["health","🩺 Health"],["rules","📋 Rules"]].map(([id,label]) => (
+              <button key={id} onClick={() => setNav(id)} style={{ flex:1, padding:"12px 4px", border:"none", borderBottom:nav===id?`3px solid ${T.peach}`:"3px solid transparent", background:"transparent", cursor:"pointer", fontSize:10, letterSpacing:1, color:nav===id?T.peach:T.muted, fontWeight:nav===id?"700":"400", transition:"color 0.2s" }}>{label}</button>
+            ))}
+          </div>
+
+          {/* WEEK */}
+          {nav==="week" && <>
+            <div style={{ display:"flex", overflowX:"auto", background:"#fff", borderBottom:`1px solid ${T.border}` }}>
+              {days.map((d,i) => (
+                <button key={i} onClick={() => { setDayIdx(i); setTab("meals"); }} style={{ flex:"0 0 auto", padding:"8px 11px", border:"none", borderBottom:dayIdx===i?`3px solid ${d.accent}`:"3px solid transparent", background:dayIdx===i?d.accentL:"transparent", cursor:"pointer", fontSize:9, letterSpacing:0.5, whiteSpace:"nowrap", lineHeight:1.5, color:dayIdx===i?d.accent:T.muted, fontWeight:dayIdx===i?"700":"400", transition:"all 0.15s" }}>
+                  {d.emoji} {d.short}<br/><span style={{ fontSize:8 }}>{d.date}</span>
+                </button>
+              ))}
+            </div>
+
+            <div style={{ padding:"16px 20px 0", background:`linear-gradient(180deg,${day.accentL} 0%,${T.bg} 100%)` }}>
+              <FadeIn key={day.id}>
+                <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginBottom:8 }}>
+                  <div style={{ background:day.accent, color:"#fff", fontSize:9, letterSpacing:1, padding:"3px 12px", borderRadius:20, fontWeight:600 }}>{day.date}</div>
+                  {day.iron && <div style={{ background:"#fef2f2", color:T.coral, fontSize:9, padding:"3px 10px", borderRadius:20, border:`1px solid ${T.coral}40`, fontWeight:500 }}>🔴 IRON DAY</div>}
+                  {day.oven && <div style={{ background:T.sunL, color:"#92400e", fontSize:9, padding:"3px 10px", borderRadius:20, border:`1px solid ${T.sun}60`, fontWeight:500 }}>🔥 OVEN NIGHT</div>}
+                  {day.foodPlan && <div style={{ background:T.sageL, color:T.sage, fontSize:9, padding:"3px 10px", borderRadius:20, border:`1px solid ${T.sage}60`, fontWeight:500 }}>🥗 MEAL PLAN</div>}
+                </div>
+                <div style={{ fontSize:22, fontWeight:900, letterSpacing:-0.5, color:T.ink, lineHeight:1.15, fontFamily:"'Playfair Display',serif" }}>{day.emoji} {day.label}</div>
+                {day.note && <div style={{ fontSize:13, color:T.muted, marginTop:5, fontStyle:"italic", fontFamily:"'Playfair Display',serif", lineHeight:1.5 }}>{day.note}</div>}
+                {day.alert && <div style={{ background:"#fffbeb", border:`1.5px solid ${T.sun}`, borderRadius:10, padding:"10px 14px", fontSize:12, marginTop:10, lineHeight:1.5, color:"#92400e", fontWeight:500 }}>{day.alert}</div>}
+                {day.bedtime && <div style={{ background:T.lavL, border:`1px solid ${T.lav}50`, borderRadius:10, padding:"8px 14px", fontSize:11, marginTop:8, color:T.lav, fontWeight:500 }}>🌙 {day.bedtime}</div>}
+              </FadeIn>
+            </div>
+
+            <div style={{ display:"flex", padding:"12px 20px 0", gap:6 }}>
+              {["meals","workout","supplements"].map(t => (
+                <button key={t} onClick={() => setTab(t)} style={{ padding:"5px 14px", border:`1.5px solid ${tab===t?day.accent:T.border}`, borderRadius:20, background:tab===t?day.accent:"transparent", color:tab===t?"#fff":T.muted, fontSize:10, letterSpacing:1, cursor:"pointer", fontWeight:tab===t?"600":"400", textTransform:"uppercase", transition:"all 0.2s" }}>{t}</button>
+              ))}
+            </div>
+
+            <div style={{ padding:"12px 20px 140px" }}>
+              {tab==="meals" && (
+                <div>
+                  {!day.foodPlan && <FadeIn><div style={{ background:T.lavL, border:`1px solid ${T.lav}40`, borderRadius:10, padding:"12px 14px", marginBottom:10, fontSize:13, color:T.lav, fontStyle:"italic" }}>🏠 At boyfriend's — flexible eating. Protein anchor + enjoy it.</div></FadeIn>}
+                  {["breakfast","lunch","dinner","snacks"].map((m,mi) => {
+                    const meal = day.meals[m];
+                    if (!meal) return (
+                      <FadeIn key={m} delay={mi*60}>
+                        <div style={{ background:"#fff", borderRadius:10, padding:"10px 14px", opacity:0.4, border:`1px solid ${T.border}`, marginBottom:8 }}>
+                          <div style={{ fontSize:9, letterSpacing:2, color:T.muted, fontWeight:600 }}>{m.toUpperCase()}</div>
+                          <div style={{ fontSize:13, marginTop:3, fontStyle:"italic", color:T.muted }}>—</div>
+                        </div>
+                      </FadeIn>
+                    );
+                    const isStr = typeof meal==="string";
+                    return (
+                      <FadeIn key={m} delay={mi*60}>
+                        <Card color={day.accent} style={{ background:T.card, borderRadius:12, padding:"14px 16px", border:`1px solid ${T.border}`, marginBottom:8 }}>
+                          <div style={{ fontSize:9, letterSpacing:2, color:T.muted, marginBottom:4, fontWeight:600 }}>{m.toUpperCase()}{!isStr && meal.prep?` · ${meal.prep}`:""}</div>
+                          {isStr ? <div style={{ fontSize:14, lineHeight:1.5 }}>{meal}</div> : <>
+                            <div style={{ fontSize:15, fontWeight:700, lineHeight:1.3, fontFamily:"'Playfair Display',serif" }}>{meal.name}</div>
+                            {meal.note && <div style={{ fontSize:12, color:T.muted, marginTop:5, fontStyle:"italic", lineHeight:1.5 }}>{meal.note}</div>}
+                          </>}
+                        </Card>
+                      </FadeIn>
+                    );
+                  })}
+                </div>
+              )}
+
+              {tab==="workout" && (
+                <FadeIn>
+                  {day.workout ? (
+                    <>
+                      <Card color={day.workout.accent} style={{ background:`linear-gradient(135deg,${day.accentL},#fff)`, border:`2px solid ${day.workout.accent}50`, borderRadius:16, padding:"20px", marginBottom:12 }}>
+                        <div style={{ fontSize:9, letterSpacing:2, color:day.workout.accent, marginBottom:8, fontWeight:700 }}>{day.workout.isRest?"REST":`SESSION${day.workout.weighted?" · 💪 WEIGHTED":" · BODYWEIGHT"}`}</div>
+                        <div style={{ fontSize:19, fontWeight:900, lineHeight:1.2, fontFamily:"'Playfair Display',serif" }}>{day.workout.type}</div>
+                        <div style={{ display:"inline-block", background:day.workout.accent, color:"#fff", fontSize:11, padding:"5px 16px", borderRadius:20, marginTop:12, fontWeight:600 }}>⏱ {day.workout.duration}</div>
+                        <div style={{ fontSize:13, color:"#57534e", marginTop:14, lineHeight:1.7, fontStyle:"italic", fontFamily:"'Playfair Display',serif" }}>{day.workout.note}</div>
+                      </Card>
+                      {day.workout.views.length > 0 && (
+                        <div style={{ background:T.card, borderRadius:12, padding:"14px 16px", border:`1px solid ${T.border}` }}>
+                          <div style={{ fontSize:9, letterSpacing:2, color:T.muted, marginBottom:10, fontWeight:600 }}>NOTION VIEWS TO USE</div>
+                          {day.workout.views.map((v,i) => (
+                            <SlideIn key={i} delay={i*80}>
+                              <div style={{ padding:"8px 0", borderBottom:i<day.workout.views.length-1?`1px solid ${T.border}`:"none", fontSize:13, display:"flex", gap:10, alignItems:"center" }}>
+                                <span style={{ color:T.sage, fontWeight:700, flexShrink:0 }}>→</span><span>{v}</span>
+                              </div>
+                            </SlideIn>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div style={{ background:`linear-gradient(135deg,${T.sageL},#fff)`, borderRadius:16, padding:"40px 20px", textAlign:"center", border:`1px solid ${T.sage}40` }}>
+                      <div style={{ fontSize:44, marginBottom:14 }}>🌿</div>
+                      <div style={{ fontWeight:900, fontSize:20, fontFamily:"'Playfair Display',serif" }}>Rest Day</div>
+                      <div style={{ fontSize:13, color:T.muted, marginTop:10, fontStyle:"italic", maxWidth:260, margin:"10px auto 0", lineHeight:1.7, fontFamily:"'Playfair Display',serif" }}>Thursday is always rest. Go into Friday PT completely fresh. That's the whole design.</div>
+                    </div>
+                  )}
+                </FadeIn>
+              )}
+
+              {tab==="supplements" && (
+                <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                  {day.supplements.map((s,i) => (
+                    <FadeIn key={i} delay={i*50}>
+                      <Card color={T.peach} style={{ background:T.card, borderRadius:10, padding:"13px 15px", border:`1px solid ${T.border}` }}>
+                        <div style={{ fontSize:13, lineHeight:1.5 }}>{s}</div>
+                      </Card>
+                    </FadeIn>
+                  ))}
+                </div>
+              )}
+            </div>
+          </>}
+
+          {/* HEALTH */}
+          {nav==="health" && (
+            <div style={{ padding:"20px 20px 130px" }}>
+              <FadeIn>
+                <div style={{ fontSize:9, letterSpacing:3, color:T.peach, fontWeight:700, marginBottom:12 }}>BIOMETRICS — APPLE HEALTH 2019–2026</div>
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8, marginBottom:24 }}>
+                  {STATS.map((s,i) => (
+                    <FadeIn key={i} delay={i*60}>
+                      <Card color={s.c} style={{ background:T.card, borderRadius:14, padding:"13px 10px", border:`2px solid ${s.c}25` }}>
+                        <div style={{ fontSize:15, fontWeight:800, color:s.c, fontFamily:"'Playfair Display',serif" }}>{s.v}</div>
+                        <div style={{ fontSize:10, color:T.ink, marginTop:2, fontWeight:600 }}>{s.l}</div>
+                        <div style={{ fontSize:9, color:T.muted, marginTop:2 }}>{s.s}</div>
+                      </Card>
+                    </FadeIn>
+                  ))}
+                </div>
+                <div style={{ fontSize:9, letterSpacing:3, color:T.peach, fontWeight:700, marginBottom:12 }}>LAB MARKERS — OCT 2025</div>
+                {MARKERS.map((m,i) => (
+                  <FadeIn key={i} delay={i*50}>
+                    <Card color={sColor(m.status)} onClick={() => setExpanded(expanded===i?null:i)} style={{ background:T.card, borderRadius:12, padding:"14px 16px", border:`1.5px solid ${sColor(m.status)}35`, marginBottom:8 }}>
+                      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                        <div style={{ display:"flex", gap:10, alignItems:"center" }}>
+                          <span style={{ fontSize:20 }}>{m.icon}</span>
+                          <div style={{ fontSize:14, fontWeight:700, fontFamily:"'Playfair Display',serif" }}>{m.label}</div>
+                        </div>
+                        <div style={{ textAlign:"right" }}>
+                          <div style={{ fontSize:16, fontWeight:800, color:sColor(m.status), fontFamily:"'Playfair Display',serif" }}>{m.value} <span style={{ fontSize:10 }}>{m.unit}</span></div>
+                          <div style={{ fontSize:9, background:`${sColor(m.status)}18`, color:sColor(m.status), padding:"2px 8px", borderRadius:8, fontWeight:600, marginTop:2 }}>{sLabel(m.status)}</div>
+                        </div>
+                      </div>
+                      {expanded===i && (
+                        <FadeIn>
+                          <div style={{ marginTop:12, paddingTop:12, borderTop:`1px solid ${T.border}`, fontSize:13, color:T.muted, lineHeight:1.6, fontStyle:"italic", fontFamily:"'Playfair Display',serif" }}>{m.note}</div>
+                        </FadeIn>
+                      )}
+                    </Card>
+                  </FadeIn>
+                ))}
+                <FadeIn delay={200}>
+                  <div style={{ background:"linear-gradient(135deg,#fff1f2,#fff7ed)", border:`2px solid ${T.coral}`, borderRadius:16, padding:"18px", marginTop:16 }}>
+                    <div style={{ fontSize:9, letterSpacing:2, color:T.coral, fontWeight:700, marginBottom:6 }}>🚨 HIGHEST PRIORITY ACTION</div>
+                    <div style={{ fontSize:17, fontWeight:900, fontFamily:"'Playfair Display',serif" }}>Book your allergy referral</div>
+                    <div style={{ fontSize:13, color:"#9f1239", marginTop:8, lineHeight:1.7 }}>Eosinophilia across 4 blood draws over 2 years. Connects to: histamine sensitivity, hair shedding, skin reactivity, iron absorption, bladder urgency. This is the thread. Book it this week.</div>
+                  </div>
+                </FadeIn>
+                <FadeIn delay={250}>
+                  <div style={{ background:T.card, border:`1px solid ${T.border}`, borderRadius:12, padding:"14px 16px", marginTop:10 }}>
+                    <div style={{ fontSize:9, letterSpacing:2, color:T.muted, fontWeight:600, marginBottom:6 }}>NEXT RETEST</div>
+                    <div style={{ fontSize:20, fontWeight:900, color:T.sun, fontFamily:"'Playfair Display',serif" }}>July 2026</div>
+                    <div style={{ fontSize:13, color:T.muted, marginTop:4 }}>Vitamin D · B12 · Ferritin · Full CBC (eosinophils)</div>
+                  </div>
+                </FadeIn>
+              </FadeIn>
+            </div>
+          )}
+
+          {/* RULES */}
+          {nav==="rules" && (
+            <div style={{ padding:"20px 20px 130px" }}>
+              <FadeIn>
+                <div style={{ fontSize:9, letterSpacing:3, color:T.peach, fontWeight:700, marginBottom:4 }}>NON-NEGOTIABLES</div>
+                <div style={{ fontSize:13, color:T.muted, fontStyle:"italic", marginBottom:18, fontFamily:"'Playfair Display',serif" }}>These don't flex. Everything else can.</div>
+              </FadeIn>
+              {RULES.map((r,i) => (
+                <FadeIn key={i} delay={i*40}>
+                  <div style={{ padding:"14px 0", borderBottom:`1px solid ${T.border}`, display:"flex", gap:14, alignItems:"flex-start" }}>
+                    <span style={{ fontSize:22, flexShrink:0 }}>{r.icon}</span>
+                    <div>
+                      <div style={{ fontWeight:700, fontSize:14, marginBottom:3, fontFamily:"'Playfair Display',serif" }}>{r.t}</div>
+                      <div style={{ fontSize:13, color:T.muted, lineHeight:1.55 }}>{r.d}</div>
+                    </div>
+                  </div>
+                </FadeIn>
+              ))}
+            </div>
+          )}
+
+          {/* FOOTER */}
+          <div style={{ position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)", width:"100%", maxWidth:480, background:"linear-gradient(135deg,#fffbf0,#fff3e0)", borderTop:`2px solid ${T.border}`, padding:"10px 20px", display:"flex", justifyContent:"space-between", alignItems:"center", zIndex:30 }}>
+            <div style={{ fontSize:9, color:T.muted, fontWeight:500 }}>MYRA · 34</div>
+            <div style={{ fontSize:9, color:T.peach, fontWeight:700 }}>🌙 10:30 wind down · 11pm bed</div>
+            <div style={{ fontSize:9, color:T.muted, fontWeight:500 }}>APR 2026</div>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
