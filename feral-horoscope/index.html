@@ -6,59 +6,126 @@
 <title>Feral Horoscope</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
   :root {
-    --bg: #07050f; --surface: rgba(20,12,38,0.75); --border: #2a1f40;
-    --border-active: #9b7fd4; --text: #e0d0ff; --text-muted: #6d5090;
-    --text-dim: #3d2860; --text-body: #ddd0f5; --accent: #c0a0f0;
-    --accent-bg: rgba(60,25,90,0.5); --font-serif: Georgia, 'Times New Roman', serif;
+    --bg: #07050f;
+    --surface: rgba(20,12,38,0.75);
+    --border: #2a1f40;
+    --border-active: #9b7fd4;
+    --text: #e0d0ff;
+    --text-muted: #6d5090;
+    --text-dim: #3d2860;
+    --text-body: #ddd0f5;
+    --accent: #c0a0f0;
+    --accent-bg: rgba(60,25,90,0.5);
+    --font-serif: Georgia, 'Times New Roman', serif;
   }
-  html, body { background: var(--bg); color: var(--text); font-family: var(--font-serif); min-height: 100vh; overflow-x: hidden; }
-  canvas#stars { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
-  .wrap { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 3rem 1.5rem 4rem; }
-  .card { width: 100%; max-width: 560px; background: rgba(7,5,15,0.6); border: 1px solid var(--border); border-radius: 20px; padding: 2.5rem 2rem; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-serif);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  canvas#stars {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 3rem 1.5rem 4rem;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 560px;
+    background: rgba(7,5,15,0.6);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2.5rem 2rem;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
   .header { text-align: center; margin-bottom: 2.25rem; }
   .header-dots { font-size: 10px; letter-spacing: 7px; color: var(--text-dim); margin-bottom: 10px; }
   .header-title { font-size: 32px; font-weight: 400; letter-spacing: 3px; color: var(--text); line-height: 1.1; }
   .header-sub { font-size: 10px; letter-spacing: 6px; color: var(--text-muted); text-transform: uppercase; margin-top: 8px; }
   .header-rule { width: 60px; height: 1px; background: var(--border); margin: 14px auto 0; }
+
   .field { margin-bottom: 1.4rem; }
   .label { display: block; font-size: 10px; letter-spacing: 4px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px; }
+
   .pills { display: flex; flex-wrap: wrap; gap: 6px; }
-  .pill { padding: 5px 13px; font-size: 11px; font-family: var(--font-serif); letter-spacing: 1px; border: 1px solid var(--border); border-radius: 20px; background: transparent; color: var(--text-muted); cursor: pointer; text-transform: lowercase; transition: all 0.15s; }
+  .pill {
+    padding: 5px 13px; font-size: 11px; font-family: var(--font-serif);
+    letter-spacing: 1px; border: 1px solid var(--border); border-radius: 20px;
+    background: transparent; color: var(--text-muted); cursor: pointer;
+    text-transform: lowercase; transition: all 0.15s;
+  }
   .pill:hover { border-color: #5a3f80; color: #a080d0; }
   .pill.active { border-color: var(--border-active); background: #2a1540; color: var(--accent); }
-  input[type="text"], input[type="password"], textarea { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; color: var(--text-body); font-family: var(--font-serif); font-size: 13.5px; line-height: 1.7; outline: none; transition: border-color 0.15s; }
-  input[type="text"]:focus, input[type="password"]:focus, textarea:focus { border-color: #5a3f80; }
-  input::placeholder, textarea::placeholder { color: var(--text-dim); }
-  textarea { resize: none; }
-  .btn { width: 100%; padding: 13px 0; background: transparent; border: 1px solid var(--border); border-radius: 10px; color: var(--text-dim); font-family: var(--font-serif); font-size: 11px; letter-spacing: 4px; text-transform: uppercase; cursor: not-allowed; transition: all 0.2s; margin-top: 0.25rem; }
-  .btn.ready, .btn.always-ready { border-color: #7040b0; background: var(--accent-bg); color: var(--accent); cursor: pointer; }
-  .btn.ready:hover, .btn.always-ready:hover { background: rgba(80,30,110,0.6); }
-  .key-intro { font-size: 13px; line-height: 1.9; color: #9070b8; margin-bottom: 1.5rem; }
-  .key-intro a { color: var(--accent); text-decoration: none; border-bottom: 1px solid #5a3f80; }
-  .key-row { display: flex; gap: 8px; align-items: stretch; margin-bottom: 0.5rem; }
-  .key-row input { flex: 1; }
-  .key-small-btn { padding: 0 14px; background: transparent; border: 1px solid var(--border); border-radius: 10px; color: var(--text-muted); font-family: var(--font-serif); font-size: 11px; letter-spacing: 2px; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
-  .key-small-btn:hover { border-color: #5a3f80; color: #a080d0; }
-  .key-note { font-size: 11px; color: var(--text-dim); letter-spacing: 1px; margin-bottom: 1.5rem; line-height: 1.6; }
-  .key-badge { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-bottom: 1.5rem; }
-  .key-badge-text { font-size: 10px; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; }
-  .key-badge-btn { font-size: 10px; letter-spacing: 2px; color: var(--text-muted); background: transparent; border: 1px solid var(--border); border-radius: 12px; padding: 3px 10px; cursor: pointer; font-family: var(--font-serif); text-transform: uppercase; transition: all 0.15s; }
-  .key-badge-btn:hover { border-color: #5a3f80; color: #a080d0; }
+
+  textarea, input[type="password"] {
+    width: 100%; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 16px; color: var(--text-body);
+    font-family: var(--font-serif); font-size: 13.5px;
+    line-height: 1.7; outline: none; transition: border-color 0.15s; resize: none;
+  }
+  textarea:focus, input[type="password"]:focus { border-color: #5a3f80; }
+  textarea::placeholder, input[type="password"]::placeholder { color: var(--text-dim); }
+
+  .btn {
+    width: 100%; padding: 13px 0; background: transparent;
+    border: 1px solid var(--border); border-radius: 10px;
+    color: var(--text-dim); font-family: var(--font-serif);
+    font-size: 11px; letter-spacing: 4px; text-transform: uppercase;
+    cursor: not-allowed; transition: all 0.2s; margin-top: 0.25rem;
+  }
+  .btn.ready { border-color: #7040b0; background: var(--accent-bg); color: var(--accent); cursor: pointer; }
+  .btn.ready:hover { background: rgba(80,30,110,0.6); }
+
   #loading { display: none; text-align: center; padding: 4rem 0; }
   .loading-glyph { font-size: 48px; color: #9060c0; opacity: 0.6; display: block; margin-bottom: 1.5rem; animation: breathe 2s ease-in-out infinite; }
   .loading-msg { font-size: 10px; letter-spacing: 5px; color: var(--text-muted); text-transform: uppercase; }
   @keyframes breathe { 0%,100%{opacity:0.25;transform:scale(0.97)} 50%{opacity:0.75;transform:scale(1.03)} }
+
   #result { display: none; }
   .result-header { text-align: center; margin-bottom: 1.75rem; }
   .result-glyph { font-size: 52px; color: #b090e0; opacity: 0.7; display: block; line-height: 1; margin-bottom: 8px; }
   .result-meta { font-size: 10px; letter-spacing: 5px; color: var(--text-muted); text-transform: uppercase; }
   .result-body { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 1.75rem 0.25rem; margin-bottom: 1.75rem; }
   .result-body p { font-size: 15px; line-height: 2; color: var(--text-body); white-space: pre-wrap; }
-  .reset-btn { width: 100%; padding: 10px 0; background: transparent; border: 1px solid var(--border); border-radius: 10px; color: var(--text-dim); font-family: var(--font-serif); font-size: 10px; letter-spacing: 4px; text-transform: uppercase; cursor: pointer; transition: all 0.15s; }
+  .reset-btn {
+    width: 100%; padding: 10px 0; background: transparent;
+    border: 1px solid var(--border); border-radius: 10px; color: var(--text-dim);
+    font-family: var(--font-serif); font-size: 10px; letter-spacing: 4px;
+    text-transform: uppercase; cursor: pointer; transition: all 0.15s;
+  }
   .reset-btn:hover { border-color: #3d2860; color: var(--text-muted); }
+
+  #setup { display: none; }
+  .setup-note { font-size: 11px; line-height: 1.8; color: var(--text-muted); margin-bottom: 1.25rem; }
+  .setup-note a { color: var(--accent); text-decoration: none; }
+  .setup-note a:hover { text-decoration: underline; }
+  .key-hint { font-size: 10px; color: var(--text-dim); margin-top: 6px; letter-spacing: 1px; }
+
   .error-msg { font-size: 12px; color: #c07070; text-align: center; margin-bottom: 12px; }
   .footer { margin-top: 2rem; font-size: 10px; letter-spacing: 3px; color: var(--text-dim); text-transform: uppercase; text-align: center; }
+  .back-link { display: block; text-align: center; margin-top: 1rem; font-size: 10px; letter-spacing: 3px; color: var(--text-dim); text-decoration: none; text-transform: uppercase; }
+  .back-link:hover { color: var(--text-muted); }
 </style>
 </head>
 <body>
@@ -71,34 +138,42 @@
       <div class="header-sub">oracle</div>
       <div class="header-rule"></div>
     </div>
-    <div id="key-screen">
-      <p class="key-intro">This oracle runs on the Anthropic API. You need a free API key — stored only in your browser, never sent anywhere except Anthropic.<br><br>Get one at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>.</p>
+
+    <div id="setup">
       <div class="field">
-        <span class="label">your api key</span>
-        <div class="key-row">
-          <input type="password" id="key-input" placeholder="sk-ant-..."/>
-          <button class="key-small-btn" onclick="toggleKeyVisibility()">show</button>
-        </div>
-        <div class="key-note">stays in your browser · never shared · delete anytime</div>
+        <span class="label">anthropic api key</span>
+        <p class="setup-note">
+          This oracle runs on your own Anthropic API key. It stays in your browser session only — never stored, never sent anywhere except Anthropic's API. Get a key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>.
+        </p>
+        <input type="password" id="api-key-input" placeholder="sk-ant-..." autocomplete="off" />
+        <p class="key-hint">Cleared when you close your browser.</p>
       </div>
-      <div class="error-msg" id="key-error" style="display:none"></div>
-      <button class="btn always-ready" onclick="saveKey()">✦ &nbsp; enter the oracle &nbsp; ✦</button>
+      <div class="error-msg" id="setup-error" style="display:none"></div>
+      <button class="btn" id="setup-btn" disabled>✦ &nbsp; enter the oracle &nbsp; ✦</button>
     </div>
+
     <div id="form" style="display:none">
-      <div class="key-badge">
-        <span class="key-badge-text">✦ key saved</span>
-        <button class="key-badge-btn" onclick="clearKey()">change key</button>
+      <div class="field">
+        <span class="label">sign</span>
+        <div class="pills" id="signs"></div>
       </div>
-      <div class="field"><span class="label">sign</span><div class="pills" id="signs"></div></div>
-      <div class="field"><span class="label">mood</span><div class="pills" id="moods"></div></div>
+      <div class="field">
+        <span class="label">mood</span>
+        <div class="pills" id="moods"></div>
+      </div>
       <div class="field">
         <span class="label">one thing that happened today</span>
-        <textarea id="event" rows="3" placeholder="be specific. the oracle needs details."></textarea>
+        <textarea id="event" rows="3" maxlength="500" placeholder="be specific. the oracle needs details."></textarea>
       </div>
       <div class="error-msg" id="error" style="display:none"></div>
       <button class="btn" id="cta" disabled>✦ &nbsp; consult the oracle &nbsp; ✦</button>
     </div>
-    <div id="loading"><span class="loading-glyph">◯</span><div class="loading-msg" id="load-msg">reading the bones</div></div>
+
+    <div id="loading">
+      <span class="loading-glyph">◯</span>
+      <div class="loading-msg" id="load-msg">reading the bones</div>
+    </div>
+
     <div id="result">
       <div class="result-header">
         <span class="result-glyph" id="res-glyph"></span>
@@ -108,63 +183,164 @@
       <button class="reset-btn" onclick="resetForm()">↩ &nbsp; read again</button>
     </div>
   </div>
+  <a class="back-link" href="../../">← back to claudefun</a>
   <div class="footer">☽ &nbsp; feral horoscope &nbsp; ☾</div>
 </div>
+
 <script>
-const SIGNS=["Aries","Taurus","Gemini","Cancer","Leo","Virgo","Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"];
-const MOODS=["chaotic","tender","vindictive","numb","feral","soft","suspicious","electric","grieving","restless","sharp","dreamy"];
-const GLYPHS={Aries:"♈",Taurus:"♉",Gemini:"♊",Cancer:"♋",Leo:"♌",Virgo:"♍",Libra:"♎",Scorpio:"♏",Sagittarius:"♐",Capricorn:"♑",Aquarius:"♒",Pisces:"♓"};
-const LOAD_MSGS=["reading the bones","arguing with saturn","the void is typing","almost through"];
-let selectedSign="",selectedMood="";
-function getKey(){return localStorage.getItem("feral_api_key")||"";}
-function saveKey(){const k=document.getElementById("key-input").value.trim();if(!k.startsWith("sk-ant-")){document.getElementById("key-error").style.display="block";document.getElementById("key-error").textContent="That doesn't look like a valid Anthropic key.";return;}localStorage.setItem("feral_api_key",k);showForm();}
-function clearKey(){localStorage.removeItem("feral_api_key");document.getElementById("key-input").value="";document.getElementById("key-error").style.display="none";document.getElementById("form").style.display="none";document.getElementById("key-screen").style.display="block";}
-function toggleKeyVisibility(){const inp=document.getElementById("key-input");const btn=document.querySelector(".key-small-btn");if(inp.type==="password"){inp.type="text";btn.textContent="hide";}else{inp.type="password";btn.textContent="show";}}
-function showForm(){document.getElementById("key-screen").style.display="none";document.getElementById("form").style.display="block";}
-if(getKey())showForm();
-function buildPills(id,items,onSelect){const el=document.getElementById(id);items.forEach(item=>{const b=document.createElement("button");b.className="pill";b.textContent=item;b.onclick=()=>{onSelect(item);el.querySelectorAll(".pill").forEach(p=>p.classList.remove("active"));b.classList.add("active");checkReady();};el.appendChild(b);});}
-buildPills("signs",SIGNS,v=>selectedSign=v);
-buildPills("moods",MOODS,v=>selectedMood=v);
-document.getElementById("event").addEventListener("input",checkReady);
-function checkReady(){const ready=selectedSign&&selectedMood&&document.getElementById("event").value.trim();const btn=document.getElementById("cta");btn.disabled=!ready;btn.classList.toggle("ready",!!ready);}
-document.getElementById("cta").addEventListener("click",generate);
-document.getElementById("key-input").addEventListener("keydown",e=>{if(e.key==="Enter")saveKey();});
+const SIGNS = ["Aries","Taurus","Gemini","Cancer","Leo","Virgo","Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"];
+const MOODS = ["chaotic","tender","vindictive","numb","feral","soft","suspicious","electric","grieving","restless","sharp","dreamy"];
+const GLYPHS = {Aries:"♈",Taurus:"♉",Gemini:"♊",Cancer:"♋",Leo:"♌",Virgo:"♍",Libra:"♎",Scorpio:"♏",Sagittarius:"♐",Capricorn:"♑",Aquarius:"♒",Pisces:"♓"};
+const LOAD_MSGS = ["reading the bones","arguing with saturn","the void is typing","almost through"];
+const SYSTEM_PROMPT = `You write feral horoscopes. Rules, non-negotiable:\n\nVOICE: Present tense. No hedging ("might", "could", "perhaps" — banned). Second person. Occasionally profane if it fits naturally. Blunt.\n\nBANNED WORDS AND PHRASES: "the cosmos", "the universe", "celestial energies", "alignments", "the stars say", "embrace", "journey", "healing", "transformation", "deep down", "your soul", "you are feeling", "perhaps", "might", "could be", "remember that", "it's okay"\n\nSTRUCTURE:\n1. One sharp behavioral observation about this sign right now — not cosmic, behavioral. Feels like you know them personally.\n2. Name the specific thing they're actually dealing with based on the event. Weird-specific. The kind of specific that makes someone feel seen.\n3. Two short directives. Imperative. Orders, not suggestions. Slightly uncomfortable to read.\n4. One closing foresight line. What's coming. Not comforting, not doom. Just a fact from the future.\n\nFORMAT: 3-4 short paragraphs. No headers. No lists. No asterisks. No emojis. Dense, rhythmic prose. 150-200 words max.\n\nTONE: Brutally perceptive friend who reads cards and does not sugarcoat. Not mystical — specific.`;
+
+let selectedSign = "", selectedMood = "", apiKey = "";
+
+window.addEventListener("DOMContentLoaded", () => {
+  const saved = sessionStorage.getItem("feral_api_key");
+  if (saved) { apiKey = saved; showForm(); }
+  else { document.getElementById("setup").style.display = "block"; setupListeners(); }
+});
+
+function setupListeners() {
+  const input = document.getElementById("api-key-input");
+  const btn = document.getElementById("setup-btn");
+  input.addEventListener("input", () => {
+    const v = input.value.trim();
+    btn.disabled = !v.startsWith("sk-ant-");
+    btn.classList.toggle("ready", !btn.disabled);
+  });
+  btn.addEventListener("click", () => {
+    const v = input.value.trim();
+    if (!v.startsWith("sk-ant-")) return;
+    apiKey = v;
+    sessionStorage.setItem("feral_api_key", v);
+    document.getElementById("setup").style.display = "none";
+    showForm();
+  });
+}
+
+function showForm() {
+  document.getElementById("form").style.display = "block";
+  buildPills("signs", SIGNS, v => selectedSign = v);
+  buildPills("moods", MOODS, v => selectedMood = v);
+  document.getElementById("event").addEventListener("input", checkReady);
+}
+
+function buildPills(id, items, onSelect) {
+  const el = document.getElementById(id);
+  if (el.children.length > 0) return;
+  items.forEach(item => {
+    const b = document.createElement("button");
+    b.className = "pill";
+    b.textContent = item;
+    b.onclick = () => {
+      onSelect(item);
+      el.querySelectorAll(".pill").forEach(p => p.classList.remove("active"));
+      b.classList.add("active");
+      checkReady();
+    };
+    el.appendChild(b);
+  });
+}
+
+function checkReady() {
+  const ready = selectedSign && selectedMood && document.getElementById("event").value.trim();
+  const btn = document.getElementById("cta");
+  btn.disabled = !ready;
+  btn.classList.toggle("ready", !!ready);
+}
+
+document.addEventListener("click", e => { if (e.target.id === "cta") generate(); });
+
 let loadInterval;
-async function generate(){
-  const event=document.getElementById("event").value.trim();
-  if(!selectedSign||!selectedMood||!event)return;
-  const key=getKey();if(!key){clearKey();return;}
-  document.getElementById("form").style.display="none";
-  document.getElementById("loading").style.display="block";
-  document.getElementById("error").style.display="none";
-  let msgIdx=0;document.getElementById("load-msg").textContent=LOAD_MSGS[0];
-  loadInterval=setInterval(()=>{msgIdx=(msgIdx+1)%LOAD_MSGS.length;document.getElementById("load-msg").textContent=LOAD_MSGS[msgIdx];},1600);
-  try{
-    const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-allow-browser":"true"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,system:"You write feral horoscopes. Rules, non-negotiable:\n\nVOICE: Present tense. No hedging. Second person. Occasionally profane if it fits naturally. Blunt.\n\nBANNED: the cosmos, the universe, celestial energies, alignments, the stars say, embrace, journey, healing, transformation, deep down, your soul, you are feeling, perhaps, might, could be, remember that, it's okay\n\nSTRUCTURE:\n1. One sharp behavioral observation about this sign right now — behavioral, not cosmic.\n2. Name the specific thing they're actually dealing with based on the event. Weird-specific.\n3. Two short directives. Imperative. Orders, not suggestions.\n4. One closing foresight line. What's coming. Not comforting, not doom.\n\nFORMAT: 3-4 short paragraphs. No headers. No lists. No asterisks. No emojis. Dense, rhythmic prose. 150-200 words max.\n\nTONE: Brutally perceptive friend who reads cards and does not sugarcoat.",messages:[{role:"user",content:"Sign: "+selectedSign+"\nMood: "+selectedMood+"\nSomething that happened today: "+event+"\n\nGive me the feral horoscope."}]})});
+async function generate() {
+  const event = document.getElementById("event").value.trim();
+  if (!selectedSign || !selectedMood || !event) return;
+  document.getElementById("form").style.display = "none";
+  document.getElementById("loading").style.display = "block";
+  document.getElementById("error").style.display = "none";
+  let msgIdx = 0;
+  document.getElementById("load-msg").textContent = LOAD_MSGS[0];
+  loadInterval = setInterval(() => {
+    msgIdx = (msgIdx + 1) % LOAD_MSGS.length;
+    document.getElementById("load-msg").textContent = LOAD_MSGS[msgIdx];
+  }, 1600);
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 1000,
+        system: SYSTEM_PROMPT,
+        messages: [{ role: "user", content: `Sign: ${selectedSign}\nMood: ${selectedMood}\nSomething that happened today: ${event}\n\nGive me the feral horoscope.` }]
+      })
+    });
     clearInterval(loadInterval);
-    if(res.status===401){localStorage.removeItem("feral_api_key");throw new Error("Invalid API key. Please re-enter it.");}
-    if(!res.ok)throw new Error("Something went wrong. Try again.");
-    const data=await res.json();
-    const text=data.content?.find(b=>b.type==="text")?.text||"";
-    document.getElementById("res-glyph").textContent=GLYPHS[selectedSign];
-    document.getElementById("res-meta").textContent=selectedSign+" · "+selectedMood;
-    document.getElementById("res-text").textContent=text;
-    document.getElementById("loading").style.display="none";
-    document.getElementById("result").style.display="block";
-  }catch(e){
+    if (res.status === 401) { sessionStorage.removeItem("feral_api_key"); apiKey = ""; throw new Error("Invalid API key. Refresh to enter a new one."); }
+    if (!res.ok) throw new Error("Oracle hit an error. Try again.");
+    const data = await res.json();
+    const horoscope = data.content?.find(b => b.type === "text")?.text || "";
+    if (!horoscope) throw new Error("Oracle went quiet. Try again.");
+    document.getElementById("res-glyph").textContent = GLYPHS[selectedSign];
+    document.getElementById("res-meta").textContent = `${selectedSign} · ${selectedMood}`;
+    document.getElementById("res-text").textContent = horoscope;
+    document.getElementById("loading").style.display = "none";
+    document.getElementById("result").style.display = "block";
+  } catch(e) {
     clearInterval(loadInterval);
-    document.getElementById("loading").style.display="none";
-    document.getElementById("error").style.display="block";
-    document.getElementById("error").textContent=e.message||"Oracle is down. Try again.";
-    document.getElementById("form").style.display="block";
+    document.getElementById("loading").style.display = "none";
+    document.getElementById("error").style.display = "block";
+    document.getElementById("error").textContent = e.message || "Oracle is down. Try again.";
+    document.getElementById("form").style.display = "block";
   }
 }
-function resetForm(){selectedSign="";selectedMood="";document.getElementById("event").value="";document.querySelectorAll(".pill").forEach(p=>p.classList.remove("active"));checkReady();document.getElementById("result").style.display="none";document.getElementById("form").style.display="block";}
-const canvas=document.getElementById("stars");const ctx=canvas.getContext("2d");let stars=[],W,H;
-function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
-function initStars(){stars=Array.from({length:220},()=>({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.3+0.2,o:Math.random()*0.45+0.1,speed:Math.random()*0.015+0.005,phase:Math.random()*Math.PI*2}));}
-function drawStars(t){ctx.clearRect(0,0,W,H);const blobs=[{x:0.2,y:0.25,r:0.38,c:"rgba(45,15,90,0.35)"},{x:0.78,y:0.68,r:0.42,c:"rgba(10,26,64,0.4)"},{x:0.6,y:0.12,r:0.28,c:"rgba(26,8,53,0.3)"}];blobs.forEach(b=>{const g=ctx.createRadialGradient(b.x*W,b.y*H,0,b.x*W,b.y*H,b.r*Math.max(W,H));g.addColorStop(0,b.c);g.addColorStop(1,"transparent");ctx.fillStyle=g;ctx.fillRect(0,0,W,H);});stars.forEach(s=>{const tw=s.o+Math.sin(t*s.speed*60+s.phase)*0.2;ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle="rgba(220,208,255,"+Math.max(0,tw)+")";ctx.fill();});requestAnimationFrame(drawStars);}
-window.addEventListener("resize",()=>{resize();initStars();});resize();initStars();requestAnimationFrame(drawStars);
+
+function resetForm() {
+  selectedSign = ""; selectedMood = "";
+  document.getElementById("event").value = "";
+  document.querySelectorAll(".pill").forEach(p => p.classList.remove("active"));
+  checkReady();
+  document.getElementById("result").style.display = "none";
+  document.getElementById("form").style.display = "block";
+}
+
+const canvas = document.getElementById("stars");
+const ctx = canvas.getContext("2d");
+let stars = [], W, H;
+function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+function initStars() {
+  stars = Array.from({length: 220}, () => ({
+    x: Math.random() * W, y: Math.random() * H,
+    r: Math.random() * 1.3 + 0.2,
+    o: Math.random() * 0.45 + 0.1,
+    speed: Math.random() * 0.015 + 0.005,
+    phase: Math.random() * Math.PI * 2
+  }));
+}
+function drawStars(t) {
+  ctx.clearRect(0, 0, W, H);
+  [[0.2,0.25,0.38,"rgba(45,15,90,0.35)"],[0.78,0.68,0.42,"rgba(10,26,64,0.4)"],[0.6,0.12,0.28,"rgba(26,8,53,0.3)"]].forEach(([bx,by,br,bc]) => {
+    const g = ctx.createRadialGradient(bx*W,by*H,0,bx*W,by*H,br*Math.max(W,H));
+    g.addColorStop(0,bc); g.addColorStop(1,"transparent");
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  });
+  stars.forEach(s => {
+    const tw = s.o + Math.sin(t*0.001*s.speed*60+s.phase)*0.2;
+    ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+    ctx.fillStyle=`rgba(220,208,255,${Math.max(0,tw)})`; ctx.fill();
+  });
+  requestAnimationFrame(drawStars);
+}
+window.addEventListener("resize", () => { resize(); initStars(); });
+resize(); initStars();
+requestAnimationFrame(drawStars);
 </script>
 </body>
 </html>
