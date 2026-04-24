@@ -77,15 +77,15 @@
   .pill:hover { border-color: #5a3f80; color: #a080d0; }
   .pill.active { border-color: var(--border-active); background: #2a1540; color: var(--accent); }
 
-  textarea, input[type="password"] {
+  textarea {
     width: 100%; background: var(--surface);
     border: 1px solid var(--border); border-radius: 10px;
     padding: 12px 16px; color: var(--text-body);
     font-family: var(--font-serif); font-size: 13.5px;
     line-height: 1.7; outline: none; transition: border-color 0.15s; resize: none;
   }
-  textarea:focus, input[type="password"]:focus { border-color: #5a3f80; }
-  textarea::placeholder, input[type="password"]::placeholder { color: var(--text-dim); }
+  textarea:focus { border-color: #5a3f80; }
+  textarea::placeholder { color: var(--text-dim); }
 
   .btn {
     width: 100%; padding: 13px 0; background: transparent;
@@ -116,16 +116,8 @@
   }
   .reset-btn:hover { border-color: #3d2860; color: var(--text-muted); }
 
-  #setup { display: none; }
-  .setup-note { font-size: 11px; line-height: 1.8; color: var(--text-muted); margin-bottom: 1.25rem; }
-  .setup-note a { color: var(--accent); text-decoration: none; }
-  .setup-note a:hover { text-decoration: underline; }
-  .key-hint { font-size: 10px; color: var(--text-dim); margin-top: 6px; letter-spacing: 1px; }
-
   .error-msg { font-size: 12px; color: #c07070; text-align: center; margin-bottom: 12px; }
   .footer { margin-top: 2rem; font-size: 10px; letter-spacing: 3px; color: var(--text-dim); text-transform: uppercase; text-align: center; }
-  .back-link { display: block; text-align: center; margin-top: 1rem; font-size: 10px; letter-spacing: 3px; color: var(--text-dim); text-decoration: none; text-transform: uppercase; }
-  .back-link:hover { color: var(--text-muted); }
 </style>
 </head>
 <body>
@@ -139,20 +131,7 @@
       <div class="header-rule"></div>
     </div>
 
-    <div id="setup">
-      <div class="field">
-        <span class="label">anthropic api key</span>
-        <p class="setup-note">
-          This oracle runs on your own Anthropic API key. It stays in your browser session only — never stored, never sent anywhere except Anthropic's API. Get a key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>.
-        </p>
-        <input type="password" id="api-key-input" placeholder="sk-ant-..." autocomplete="off" />
-        <p class="key-hint">Cleared when you close your browser.</p>
-      </div>
-      <div class="error-msg" id="setup-error" style="display:none"></div>
-      <button class="btn" id="setup-btn" disabled>✦ &nbsp; enter the oracle &nbsp; ✦</button>
-    </div>
-
-    <div id="form" style="display:none">
+    <div id="form">
       <div class="field">
         <span class="label">sign</span>
         <div class="pills" id="signs"></div>
@@ -183,7 +162,6 @@
       <button class="reset-btn" onclick="resetForm()">↩ &nbsp; read again</button>
     </div>
   </div>
-  <a class="back-link" href="../../">← back to claudefun</a>
   <div class="footer">☽ &nbsp; feral horoscope &nbsp; ☾</div>
 </div>
 
@@ -192,44 +170,11 @@ const SIGNS = ["Aries","Taurus","Gemini","Cancer","Leo","Virgo","Libra","Scorpio
 const MOODS = ["chaotic","tender","vindictive","numb","feral","soft","suspicious","electric","grieving","restless","sharp","dreamy"];
 const GLYPHS = {Aries:"♈",Taurus:"♉",Gemini:"♊",Cancer:"♋",Leo:"♌",Virgo:"♍",Libra:"♎",Scorpio:"♏",Sagittarius:"♐",Capricorn:"♑",Aquarius:"♒",Pisces:"♓"};
 const LOAD_MSGS = ["reading the bones","arguing with saturn","the void is typing","almost through"];
-const SYSTEM_PROMPT = `You write feral horoscopes. Rules, non-negotiable:\n\nVOICE: Present tense. No hedging ("might", "could", "perhaps" — banned). Second person. Occasionally profane if it fits naturally. Blunt.\n\nBANNED WORDS AND PHRASES: "the cosmos", "the universe", "celestial energies", "alignments", "the stars say", "embrace", "journey", "healing", "transformation", "deep down", "your soul", "you are feeling", "perhaps", "might", "could be", "remember that", "it's okay"\n\nSTRUCTURE:\n1. One sharp behavioral observation about this sign right now — not cosmic, behavioral. Feels like you know them personally.\n2. Name the specific thing they're actually dealing with based on the event. Weird-specific. The kind of specific that makes someone feel seen.\n3. Two short directives. Imperative. Orders, not suggestions. Slightly uncomfortable to read.\n4. One closing foresight line. What's coming. Not comforting, not doom. Just a fact from the future.\n\nFORMAT: 3-4 short paragraphs. No headers. No lists. No asterisks. No emojis. Dense, rhythmic prose. 150-200 words max.\n\nTONE: Brutally perceptive friend who reads cards and does not sugarcoat. Not mystical — specific.`;
 
-let selectedSign = "", selectedMood = "", apiKey = "";
-
-window.addEventListener("DOMContentLoaded", () => {
-  const saved = sessionStorage.getItem("feral_api_key");
-  if (saved) { apiKey = saved; showForm(); }
-  else { document.getElementById("setup").style.display = "block"; setupListeners(); }
-});
-
-function setupListeners() {
-  const input = document.getElementById("api-key-input");
-  const btn = document.getElementById("setup-btn");
-  input.addEventListener("input", () => {
-    const v = input.value.trim();
-    btn.disabled = !v.startsWith("sk-ant-");
-    btn.classList.toggle("ready", !btn.disabled);
-  });
-  btn.addEventListener("click", () => {
-    const v = input.value.trim();
-    if (!v.startsWith("sk-ant-")) return;
-    apiKey = v;
-    sessionStorage.setItem("feral_api_key", v);
-    document.getElementById("setup").style.display = "none";
-    showForm();
-  });
-}
-
-function showForm() {
-  document.getElementById("form").style.display = "block";
-  buildPills("signs", SIGNS, v => selectedSign = v);
-  buildPills("moods", MOODS, v => selectedMood = v);
-  document.getElementById("event").addEventListener("input", checkReady);
-}
+let selectedSign = "", selectedMood = "";
 
 function buildPills(id, items, onSelect) {
   const el = document.getElementById(id);
-  if (el.children.length > 0) return;
   items.forEach(item => {
     const b = document.createElement("button");
     b.className = "pill";
@@ -243,6 +188,9 @@ function buildPills(id, items, onSelect) {
     el.appendChild(b);
   });
 }
+buildPills("signs", SIGNS, v => selectedSign = v);
+buildPills("moods", MOODS, v => selectedMood = v);
+document.getElementById("event").addEventListener("input", checkReady);
 
 function checkReady() {
   const ready = selectedSign && selectedMood && document.getElementById("event").value.trim();
@@ -251,48 +199,41 @@ function checkReady() {
   btn.classList.toggle("ready", !!ready);
 }
 
-document.addEventListener("click", e => { if (e.target.id === "cta") generate(); });
+document.getElementById("cta").addEventListener("click", generate);
 
 let loadInterval;
 async function generate() {
   const event = document.getElementById("event").value.trim();
   if (!selectedSign || !selectedMood || !event) return;
+
   document.getElementById("form").style.display = "none";
   document.getElementById("loading").style.display = "block";
   document.getElementById("error").style.display = "none";
+
   let msgIdx = 0;
   document.getElementById("load-msg").textContent = LOAD_MSGS[0];
   loadInterval = setInterval(() => {
     msgIdx = (msgIdx + 1) % LOAD_MSGS.length;
     document.getElementById("load-msg").textContent = LOAD_MSGS[msgIdx];
   }, 1600);
+
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await fetch("/api/horoscope", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true"
-      },
-      body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 1000,
-        system: SYSTEM_PROMPT,
-        messages: [{ role: "user", content: `Sign: ${selectedSign}\nMood: ${selectedMood}\nSomething that happened today: ${event}\n\nGive me the feral horoscope.` }]
-      })
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sign: selectedSign, mood: selectedMood, event })
     });
+
     clearInterval(loadInterval);
-    if (res.status === 401) { sessionStorage.removeItem("feral_api_key"); apiKey = ""; throw new Error("Invalid API key. Refresh to enter a new one."); }
-    if (!res.ok) throw new Error("Oracle hit an error. Try again.");
+    if (!res.ok) throw new Error("Something went wrong. Try again.");
     const data = await res.json();
-    const horoscope = data.content?.find(b => b.type === "text")?.text || "";
-    if (!horoscope) throw new Error("Oracle went quiet. Try again.");
+
     document.getElementById("res-glyph").textContent = GLYPHS[selectedSign];
-    document.getElementById("res-meta").textContent = `${selectedSign} · ${selectedMood}`;
-    document.getElementById("res-text").textContent = horoscope;
+    document.getElementById("res-meta").textContent = selectedSign + " · " + selectedMood;
+    document.getElementById("res-text").textContent = data.horoscope;
     document.getElementById("loading").style.display = "none";
     document.getElementById("result").style.display = "block";
+
   } catch(e) {
     clearInterval(loadInterval);
     document.getElementById("loading").style.display = "none";
@@ -311,10 +252,16 @@ function resetForm() {
   document.getElementById("form").style.display = "block";
 }
 
+// Star field
 const canvas = document.getElementById("stars");
 const ctx = canvas.getContext("2d");
 let stars = [], W, H;
-function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+
 function initStars() {
   stars = Array.from({length: 220}, () => ({
     x: Math.random() * W, y: Math.random() * H,
@@ -324,6 +271,7 @@ function initStars() {
     phase: Math.random() * Math.PI * 2
   }));
 }
+
 function drawStars(t) {
   ctx.clearRect(0, 0, W, H);
   [[0.2,0.25,0.38,"rgba(45,15,90,0.35)"],[0.78,0.68,0.42,"rgba(10,26,64,0.4)"],[0.6,0.12,0.28,"rgba(26,8,53,0.3)"]].forEach(([bx,by,br,bc]) => {
@@ -334,10 +282,11 @@ function drawStars(t) {
   stars.forEach(s => {
     const tw = s.o + Math.sin(t*0.001*s.speed*60+s.phase)*0.2;
     ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-    ctx.fillStyle=`rgba(220,208,255,${Math.max(0,tw)})`; ctx.fill();
+    ctx.fillStyle="rgba(220,208,255,"+Math.max(0,tw)+")"; ctx.fill();
   });
   requestAnimationFrame(drawStars);
 }
+
 window.addEventListener("resize", () => { resize(); initStars(); });
 resize(); initStars();
 requestAnimationFrame(drawStars);
