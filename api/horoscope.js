@@ -1,4 +1,4 @@
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   const { sign, mood, event } = req.body;
@@ -55,4 +55,4 @@ TONE: Brutally perceptive friend who reads cards and does not sugarcoat. Not mys
     console.error(e);
     res.status(500).json({ error: "Oracle is down. Try again." });
   }
-}
+};
