@@ -1,0 +1,1767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tunisia — May 2026</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #FBF6EC; }
+  #root { min-height: 100vh; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
+<script>
+const { useState } = React;
+
+const fontLink = document.createElement("link");
+fontLink.rel = "stylesheet";
+fontLink.href = "https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;600;700;800&display=swap";
+document.head.appendChild(fontLink);
+const T = {
+  cobalt: "#0B3D91",
+  sky: "#4A90D9",
+  azure: "#E8F0FB",
+  fire: "#D4510A",
+  gold: "#E8A020",
+  cream: "#FBF6EC",
+  sand: "#F0E4C8",
+  ink: "#1A1714",
+  char: "#3C3530",
+  stone: "#6E6560",
+  fog: "#B8B0A8",
+  white: "#FEFCF8",
+  olive: "#4A5A20",
+  teal: "#1A7377"
+};
+const F = {
+  display: "'Instrument Serif', Georgia, serif",
+  ui: "'Syne', system-ui, sans-serif",
+  mono: "'DM Mono', monospace"
+};
+const stories = [{
+  id: 0,
+  date: "May 1–3",
+  location: "Tunis",
+  emoji: "🕌",
+  accent: T.cobalt,
+  accentBg: T.azure,
+  tag: "CITY",
+  planned: true,
+  tagline: "Big, spread out, not conventionally pretty — but genuinely interesting if you pick the right bits.",
+  hero: "Pick your base wisely — the medina area is the right call. Don't try to do the whole city. Tunis rewards slowness.",
+  bullets: [{
+    icon: "🕌",
+    label: "The Medina",
+    sub: "Zitouna Mosque, Souk des Chéchias (hat makers still making hats by hand), perfume souk. No agenda. Just walk."
+  }, {
+    icon: "☕",
+    label: "Café Panorama",
+    sub: "Rooftop above the souks, 360° views over Zitouna mosque courtyard. Ask for La Maison d'Orient on Souk Trok — it's on the roof."
+  }, {
+    icon: "🏛️",
+    label: "Bardo Museum",
+    sub: "World's largest Roman mosaic collection. Non-negotiable. Go early, 2–3 hours minimum. Better than you expect."
+  }, {
+    icon: "🐑",
+    label: "Byrsa Hill",
+    sub: "A Roman ruin just sitting in the middle of the city with sheep grazing on it. No entrance fee. Other cities would charge you £10 minimum. Tunis is just like — it's just ruins, whatever."
+  }, {
+    icon: "🍽️",
+    label: "Set Al Habayeb",
+    sub: "16 Rue Boukhrissan. Hard to find at night, feels like a palace inside. Open until midnight. 4.9 stars, earns every one."
+  }],
+  history: [{
+    flag: "BYRSA HILL",
+    text: "You're standing on the acropolis of ancient Carthage — founded by Phoenician queen Dido in 814 BC. Rome destroyed the city so completely in 146 BC they salted the earth. Then rebuilt it as one of the empire's three largest cities. Both versions are gone. The sheep don't care."
+  }, {
+    flag: "IBN KHALDUN",
+    text: "Born in Tunis in 1332. Watched the dynasty he worked for collapse from the inside, retreated to a castle, and wrote the first ever systematic theory of why civilisations fall. The man who invented political sociology lived on these streets."
+  }, {
+    flag: "BARDO: LAYERS",
+    text: "The museum sits inside a 13th-century Hafsid palace. The Roman mosaics inside it were made 1,000 years earlier by a completely different civilisation. The layers are literal."
+  }, {
+    flag: "ZITOUNA MOSQUE",
+    text: "Founded 9th century — 60 years before Cairo's Al-Azhar. North Africa was the intellectual centre of early Islam before Egypt was. Most people don't know this."
+  }],
+  practical: ["Most medina restaurants close Sundays — head to Avenue Bourguiba instead", "Dar El Jeld, Fondouk El Attarine, Dar Slah all closed Sundays", "Nomads Hostel near the medina is a great base — puts you in the right part of the city"],
+  mapIds: [0]
+}, {
+  id: 1,
+  date: "May 4 — Unplanned",
+  location: "Dougga",
+  emoji: "🏚️",
+  accent: T.olive,
+  accentBg: "#EFF1E6",
+  tag: "UNPLANNED",
+  planned: false,
+  tagline: "Nobody planned this. Between Dougga and El Jem you see the best Roman ruins in the country. Carthage is underwhelming in comparison — skip it.",
+  hero: "The best-preserved Roman city in North Africa, on a hilltop, with almost no one else there. The effort to get here is real. It's worth it.",
+  bullets: [{
+    icon: "🏛️",
+    label: "The Ruins",
+    sub: "Capitol temple, Roman theatre, Punic tombs, ancient olive groves. Silence except for cicadas. No crowds whatsoever."
+  }, {
+    icon: "🧀",
+    label: "Testour Village en route",
+    sub: "Tunisia's cheese capital — founded by Muslim refugees from Spain in the 17th century. Buy Testouri cheese and bread for a picnic at the ruins. This is the move."
+  }, {
+    icon: "⚠️",
+    label: "Transport warning",
+    sub: "Our louage cancelled with no notice. Last one back from Téboursouk is 2pm sharp. Have a backup plan — a guided day trip removes all the stress for a group."
+  }],
+  history: [{
+    flag: "BERBER BEFORE ROMAN",
+    text: "Originally called Thugga — a Numidian Amazigh settlement. The Punic-Libyan mausoleum near the ruins predates the Roman theatre by 300 years. Rome built on top of what was already there, as it always did."
+  }, {
+    flag: "JUGURTHA",
+    text: "The Numidian king who fought Rome for 17 years. Said Rome was 'a city for sale, and will soon perish if it finds a buyer.' He ended up in a Roman prison. The ruins you're walking through were under his jurisdiction."
+  }, {
+    flag: "WHY IT SURVIVED",
+    text: "The Capitol temple (166 AD) is intact because the site was too remote to strip for building materials — the fate of most Roman structures elsewhere. Distance from progress preserved it."
+  }],
+  practical: ["Last louage from Téboursouk back to Tunis: 2pm — do not miss it", "Louages can cancel with zero warning — always have a backup", "Guided day trip (Viator/Civitatis) worth it for groups — hotel pickup, A/C vehicle", "Buy cheese in Testour village, not at the ruins"],
+  mapIds: [0, 3]
+}, {
+  id: 2,
+  date: "May 5 — Unplanned",
+  location: "Bizerte",
+  emoji: "🎡",
+  accent: T.teal,
+  accentBg: "#E4F0F0",
+  tag: "UNPLANNED",
+  planned: false,
+  tagline: "If you have time, it's cool — but you won't miss much if you skip it. Nice if you want a slower pace and genuinely local energy.",
+  hero: "Not on the itinerary. Someone said let's take the louage north and see what happens. An hour later we were at a fairground with no other tourists in sight.",
+  bullets: [{
+    icon: "🎡",
+    label: "The Fairground",
+    sub: "A proper fairground. Locals living their lives on a weekday. This is what Tunisia looks like when nobody's performing for visitors."
+  }, {
+    icon: "🐟",
+    label: "Lablabi with anchovies",
+    sub: "The Bizerte version comes with anchovies — completely different to what you get in Tunis. Find it at a street stall. Don't leave without trying it."
+  }, {
+    icon: "☕",
+    label: "Hippos",
+    sub: "Decent coffee stop. Nothing more, nothing less."
+  }],
+  history: [{
+    flag: "EVERY EMPIRE WANTED IT",
+    text: "Founded as Hippo Diarrhytus by Phoenicians, then Roman, Byzantine, Arab, Ottoman, Spanish, French. The port's strategic position made it contested across 3,000 years of Mediterranean politics. It's had more rulers than most countries."
+  }, {
+    flag: "FRENCH LEFT IN 1963",
+    text: "After independence, Bourguiba demanded France evacuate its military base here. They refused. The standoff lasted years — French troops finally left in 1963, a full seven years after Tunisian independence. One of the tensest post-colonial confrontations in North Africa."
+  }],
+  practical: ["Bizerte louage is mostly locals — cash ready, price upfront", "Less English spoken — destination written in Arabic helps", "Easy half or full day spontaneous trip from Tunis"],
+  mapIds: [2]
+}, {
+  id: 3,
+  date: "May 5–8",
+  location: "Sousse",
+  emoji: "🌊",
+  accent: T.sky,
+  accentBg: T.azure,
+  tag: "COAST",
+  planned: true,
+  tagline: "Cool city, good food, more beautiful medina than Tunis, and you have beach access. The ribat is worth seeing.",
+  hero: "A proper city with a UNESCO medina, a 9th century fortress, and a working coastline that hasn't been entirely swallowed by resort hotels. The desert tour also departs from here.",
+  bullets: [{
+    icon: "🏰",
+    label: "Sousse Ribat",
+    sub: "9th century fortress. Closes at 5pm — go earlier than you think. The views from the top are genuinely ridiculous."
+  }, {
+    icon: "🕌",
+    label: "Great Mosque of Sousse",
+    sub: "One of the oldest in Tunisia. Underrated next to Kairouan. Worth seeing even from the exterior."
+  }, {
+    icon: "🌅",
+    label: "Selas",
+    sub: "Rooftop dinner, good food, lovely views. They brought complimentary maqroud and mint tea at the end without being asked. That's Tunisia."
+  }, {
+    icon: "🏖️",
+    label: "Bou Jaafar Beach",
+    sub: "Right in the city. Good for an afternoon if you want to decompress before or after the desert."
+  }, {
+    icon: "🍯",
+    label: "Maqroud",
+    sub: "Semolina and date pastry fried in honey. The sweet of Sousse. Buy it from a local bakery, not a tourist stall."
+  }],
+  history: [{
+    flag: "OLDER THAN CARTHAGE",
+    text: "Ancient Hadrumentum — a Phoenician trading post that may predate Carthage. The city's Roman mosaics are now in the Bardo. It gave up its own treasures so a museum could be built elsewhere."
+  }, {
+    flag: "THE RIBAT",
+    text: "Both military garrison and religious retreat. The soldier-monks stationed here were called murabitun — from which the word marabout (holy man) likely derives. Military and sacred were the same thing."
+  }],
+  practical: ["Ribat closes 5pm — plan accordingly or you'll only see the exterior", "Sousse louage station uses a ticket system — take a number and wait your turn", "Desert tour departs from Sousse — set your alarm the night before"],
+  mapIds: [4, 5]
+}, {
+  id: 4,
+  date: "May 6–7",
+  location: "The Sahara",
+  emoji: "🏜️",
+  accent: T.fire,
+  accentBg: "#FBF0EA",
+  tag: "DESERT",
+  planned: true,
+  tagline: "It's a LOT. Prepare yourself and pack snacks.",
+  hero: "Two full days, multiple stops, extreme heat, extreme cold at night, and the Milky Way from a Berber tent in an actual oasis. The highlight of the trip by some distance.",
+  bullets: [{
+    icon: "🏟️",
+    label: "El Jem Amphitheatre",
+    sub: "Better preserved than the Colosseum, sitting in a quiet market town with no crowds. One of the best Roman sites in the world. Most people have never heard of it. Do not skip."
+  }, {
+    icon: "🪨",
+    label: "Matmata",
+    sub: "Troglodyte Berber cave homes carved into rock — families still live underground. We had rosemary tea with honey and olive oil with locals. Sidi Driss Hotel is literally Luke Skywalker's house."
+  }, {
+    icon: "🐪",
+    label: "Sabria Desert Camp",
+    sub: "Camel at sunset. Sand bread baked under hot embers the Bedouin way. Dinner under the stars. The Milky Way doesn't translate into photos — you just have to be there."
+  }, {
+    icon: "🌊",
+    label: "Chott El Jerid",
+    sub: "North Africa's largest salt lake. Shimmering mirages, endless white salt flats. Looks like nothing else on earth."
+  }, {
+    icon: "🌿",
+    label: "Chebika",
+    sub: "Mountain oasis — palm trees growing from canyon walls, hidden waterfall, abandoned village. A proper detour."
+  }, {
+    icon: "🕌",
+    label: "Kairouan",
+    sub: "One of Islam's holiest cities. Most tours rush it. It deserves more time — extend here if you can."
+  }],
+  history: [{
+    flag: "EL JEM: THREE WEEKS",
+    text: "The amphitheatre was commissioned by Gordian I, a 79-year-old proclaimed Emperor by a tax riot. His son died in battle 22 days later. Gordian I hanged himself. The building outlasted the dynasty by 1,800 years. An act of panic made permanent in stone."
+  }, {
+    flag: "MATMATA: 10,000 YEARS",
+    text: "The pit houses maintain a constant 20°C regardless of Saharan heat. The Amazigh who built them had been in North Africa since before Carthage existed. George Lucas arrived in 1976 and named a planet after a town down the road."
+  }, {
+    flag: "CHOTT EL JERID",
+    text: "When the Sahara was green (11,000–5,000 years ago), people lived across this landscape. The African Humid Period ended when Earth's orbital cycle shifted the monsoons south. The salt flat is a geological memory of a world that vanished."
+  }, {
+    flag: "KAIROUAN 670 AD",
+    text: "The city from which Islam spread westward across the Maghreb and into sub-Saharan Africa. Founded by Arab general Uqba ibn Nafi. The Great Mosque's minaret is one of the oldest standing anywhere in the world."
+  }],
+  practical: ["⚠️ Desert drops to 14°C at 3am in May — bring a warm layer, genuinely", "Pack snacks for the long driving days — stops can be hours apart", "Desert UV is extreme — hat, SPF 50, long sleeves during the day", "Kairouan Great Mosque is viewable before 1pm on most tours", "Tour departs and returns Sousse — your hotel room is waiting"],
+  mapIds: [6, 7, 8, 9, 10, 11]
+}, {
+  id: 5,
+  date: "May 8–9",
+  location: "Sidi Bou Saïd",
+  emoji: "💙",
+  accent: T.cobalt,
+  accentBg: T.azure,
+  tag: "VILLAGE",
+  planned: true,
+  tagline: "Gorgeous but feels like a completely different world — especially coming from Tunis. Tourist trap adjacent, but worth it. A more elegant Santorini.",
+  hero: "The right ending to the trip. Blue-and-white village on a cliff above the Gulf of Tunis. Yes it's touristy. It's also genuinely beautiful, and after nine days of desert camps and cancelled louages, that's exactly what you need.",
+  bullets: [{
+    icon: "☕",
+    label: "Bleu",
+    sub: "Best breakfast in the village. Green shakshouka, great coffee. Near the Alghfran Mosque."
+  }, {
+    icon: "🥐",
+    label: "Ben Rahim",
+    sub: "The chamia croissant. Order it by name specifically. Elite."
+  }, {
+    icon: "🍵",
+    label: "Café des Nattes",
+    sub: "Do it at 5–7pm for golden hour light over the Gulf of Tunis. Yes it's famous. Yes it's worth it. Some things just are."
+  }, {
+    icon: "🍩",
+    label: "Bambalouni",
+    sub: "Street vendor on the main drag. Deep-fried, sugared doughnut, eaten walking. Non-negotiable."
+  }, {
+    icon: "🏛️",
+    label: "Dar El Annabi",
+    sub: "Restored mansion museum one minute from the main street. Almost no one goes in. Do it."
+  }, {
+    icon: "🏖️",
+    label: "The Port Beach",
+    sub: "Walk down the hill to the harbour. Different energy to the village — fishing boats, local cafés, good swim if the weather's right."
+  }],
+  history: [{
+    flag: "THE BLUE IS A FRENCHMAN'S IDEA",
+    text: "The colour scheme was legally enforced from the 1910s by Baron Rodolphe d'Erlanger, a French musicologist who fell in love with the village and mandated the aesthetic by law. The 'authentically Tunisian' look is partly a colonial preservation order. History is always more complicated than the postcard."
+  }, {
+    flag: "SUFI ORIGINS",
+    text: "Named after Abu Said ibn Khalef — a 13th century Sufi mystic whose religious lodge gave the village its name and character long before it became a destination. The spiritual community came first. The blue doors came later."
+  }, {
+    flag: "PAUL KLEE",
+    text: "In 1914, painter Paul Klee visited this coastline and wrote: 'Colour and I are one. I am a painter.' The light above the Gulf of Tunis reorganised his entire relationship to colour. This village was doing this to artists before Instagram existed."
+  }],
+  practical: ["No louages — taxi only. Agree the fare before you get in", "Taxi drivers outside the village can be aggressive on price — be firm and agree upfront", "Cats are genuinely everywhere — antihistamines if you need them", "Skip Café des Délices — multiple reports of overcharging tourists", "Airport is 30 minutes away — ideal last night spot"],
+  mapIds: [1]
+}];
+const foodGuide = [{
+  city: "Tunis",
+  flag: "🕌",
+  note: "Most medina restaurants close Sundays. The best spots have no signage and are down unmarked alleys. That's a feature.",
+  tried: [{
+    name: "Set Al Habayeb",
+    tag: "Dinner",
+    v: "Go",
+    note: "16 Rue Boukhrissan. Hard to find, palace inside. Until midnight."
+  }, {
+    name: "Mahfoul",
+    tag: "Lunch",
+    v: "Good",
+    note: "Traditional Tunisian. Solid intro to the local food."
+  }, {
+    name: "Café Panorama",
+    tag: "Coffee",
+    v: "Worth it",
+    note: "Rooftop Medina views. Ask for La Maison d'Orient, Souk Trok."
+  }],
+  recs: [{
+    name: "Fondouk El Attarine",
+    tag: "Lunch/Dinner",
+    note: "Restored caravanserai, courtyard, Andalusian music. Closed Sundays."
+  }, {
+    name: "Dar El Jeld",
+    tag: "Dinner",
+    note: "The occasion dinner. Gilded ceilings, live music. Closed Sundays."
+  }, {
+    name: "A Mi Chemin",
+    tag: "Brunch",
+    note: "Best brunch in Tunis right now. Great views, shareable plates."
+  }, {
+    name: "El Ali",
+    tag: "Café/Lunch",
+    note: "Rooftop over Zitouna. Citronnade, mezze, mint tea."
+  }],
+  street: ["Brik — thin fried pastry, egg, tuna, parsley. Eat it fast before it goes soggy.", "Fricassé — small fried bread stuffed with tuna, potato, egg, harissa. Ask for it picant.", "Lablabi — chickpea soup with bread, harissa, cumin, egg. The Tunisian breakfast. Cheap and very good."],
+  skip: []
+}, {
+  city: "Bizerte",
+  flag: "🎡",
+  note: "One dish makes the detour worth it.",
+  tried: [{
+    name: "Lablabi with anchovies",
+    tag: "Street food",
+    v: "Don't miss",
+    note: "The Bizerte version with anchovies — completely different to Tunis. Street stalls."
+  }, {
+    name: "Hippos",
+    tag: "Coffee",
+    v: "Fine",
+    note: "Decent coffee stop, nothing special."
+  }],
+  recs: [],
+  street: [],
+  skip: []
+}, {
+  city: "Dougga",
+  flag: "🏚️",
+  note: "Eat before you leave or grab provisions in Testour. Options near the ruins are limited.",
+  tried: [{
+    name: "Testouri cheese, Testour",
+    tag: "Picnic",
+    v: "Essential",
+    note: "Buy in the village, eat with local bread at the ruins. The move."
+  }],
+  recs: [{
+    name: "Dar Jdoud",
+    tag: "Lunch",
+    note: "By the ruins entrance. Served extra dishes on the house. Good value."
+  }],
+  street: [],
+  skip: []
+}, {
+  city: "Sousse",
+  flag: "🌊",
+  note: "Better for food than it gets credit for. The medina hides the best spots.",
+  tried: [{
+    name: "Selas",
+    tag: "Dinner",
+    v: "Recommend",
+    note: "Rooftop, great views. Complimentary maqroud and mint tea at the end — classic Tunisian hospitality."
+  }],
+  recs: [{
+    name: "El Soffra Chez Fredj",
+    tag: "Dinner",
+    note: "Behind a Moorish archway in the medina. Grilled seafood, stuffed squid, superb couscous. Where locals actually eat."
+  }, {
+    name: "Restaurant du Peuple",
+    tag: "Lunch",
+    note: "Third generation family-run. Daily set menu. Outside the medina, genuinely local."
+  }],
+  street: ["Maqroud — semolina and date pastry fried in honey. The sweet of Sousse. Bakeries only.", "Arabic coffee made in hot sand — watch it being made at Café Al Kasbah in the medina."],
+  skip: []
+}, {
+  city: "Sidi Bou Saïd",
+  flag: "💙",
+  note: "Small village, limited options — but the good ones are really good.",
+  tried: [{
+    name: "Bleu",
+    tag: "Breakfast",
+    v: "Best in village",
+    note: "Green shakshouka, great coffee. Near the Alghfran Mosque."
+  }, {
+    name: "Ben Rahim",
+    tag: "Pastry",
+    v: "Get the chamia",
+    note: "The chamia croissant — order it by name specifically."
+  }, {
+    name: "Café Sidi Chebaane",
+    tag: "Tea/coffee",
+    v: "Local feel",
+    note: "Less famous than Café des Nattes, quieter, more local. Sea views."
+  }, {
+    name: "Bambalouni",
+    tag: "Street",
+    v: "Non-negotiable",
+    note: "Main drag vendor. Deep-fried, sugared, eaten walking."
+  }],
+  recs: [{
+    name: "Café des Nattes",
+    tag: "Mint tea",
+    note: "5–7pm for golden hour over the Gulf. Yes it's famous. Yes it's worth it."
+  }],
+  street: [],
+  skip: ["Café des Délices — multiple reports of overcharging tourists. Skip it."]
+}];
+const louageItems = [{
+  icon: "🚐",
+  t: "What is a louage?",
+  b: "Shared long-distance taxi — usually a white Peugeot 504 estate. The cheapest way to travel between cities. Leaves when full (5 passengers), no fixed schedule. Pay for empty seats if you need to leave faster."
+}, {
+  icon: "💬",
+  t: "Always agree the price upfront",
+  b: "Fixed shared rate per seat exists, but tourists often get quoted more. Know the rough price before you arrive (ask at your accommodation), say it confidently when you get there."
+}, {
+  icon: "🗺️",
+  t: "Tunis has multiple stations",
+  b: "Different stations serve different destinations. North station (Bab Saadoun area) serves Bizerte and northern routes. A different station serves Sousse and the south. Check which one you need before you leave."
+}, {
+  icon: "🎫",
+  t: "Sousse uses a ticket system",
+  b: "Take a numbered ticket when you arrive at the station. Wait for your number to be called. Don't try to jump it — the system exists and locals use it."
+}, {
+  icon: "🚕",
+  t: "No louages to Sidi Bou Saïd",
+  b: "Taxi only. The TGM light rail is currently on partial service only — not reliable for reaching the village. Agree the fare before you get in. Drivers know tourists are heading to the airport."
+}, {
+  icon: "📅",
+  t: "Weekends are hectic",
+  b: "More travellers, longer waits for a full car, general chaos. Give yourself extra time on Fridays and Saturdays for any journey."
+}, {
+  icon: "⚠️",
+  t: "Always have a backup plan",
+  b: "Louages can and do cancel with no notice. Ours did for Dougga. If you're doing any route with a time-sensitive return (like the 2pm last louage from Téboursouk), know your backup before you leave."
+}, {
+  icon: "🌍",
+  t: "Bizerte is basically all locals",
+  b: "Not a tourist route at all — part of why it's great. Less English spoken. Destination in Arabic helps. Exact change. Be relaxed about the pace."
+}];
+const practicalItems = [{
+  section: "Money",
+  icon: "💰",
+  items: [{
+    l: "Currency",
+    t: "Tunisian Dinar (TND). You cannot reconvert leftover TND when you leave — don't over-withdraw."
+  }, {
+    l: "Cards",
+    t: "Wise works well for hotels and restaurants. Cash essential for louages, souks, street food, taxis."
+  }, {
+    l: "ATMs",
+    t: "Available in Tunis and Sousse. Daily limits can be low (~500 TND). Withdraw small amounts regularly."
+  }, {
+    l: "Budget",
+    t: "Tunisia is genuinely cheap. £350–400 per person for 9 days is comfortable including activities and food."
+  }]
+}, {
+  section: "What to Wear",
+  icon: "👗",
+  items: [{
+    l: "Modest dress",
+    t: "Covered shoulders and knees for mosque visits. A light scarf or shawl is essential — doubles as shade."
+  }, {
+    l: "Stand out",
+    t: "Dressing modestly helps, but you'll still stand out in local areas. Tunisia is welcoming and safe."
+  }, {
+    l: "Desert nights",
+    t: "It drops to 14°C at 3am even in May. Pack a warm layer. Don't make our mistake."
+  }, {
+    l: "Shoes",
+    t: "Medina cobblestones are brutal. Grip matters. Save nice sandals for evenings."
+  }]
+}, {
+  section: "Tunisair",
+  icon: "✈️",
+  items: [{
+    l: "One bag only",
+    t: "Economy allows one carry-on (55×40×25cm, max 8kg). No separate personal item. Tote goes inside your bag or on your body through security."
+  }, {
+    l: "Liquids",
+    t: "Standard 100ml rule in a clear bag. The Tunisair warning email sounds alarming — it's just the normal rule, written dramatically."
+  }]
+}, {
+  section: "Pack These",
+  icon: "🎒",
+  items: [{
+    l: "Must-haves",
+    t: "SPF 50 (expensive in Tunisia — bring your own), wide-brim hat, warm layer for desert nights, Type C/E plug adapter, power bank (no charging at desert camp)."
+  }, {
+    l: "Health",
+    t: "Antihistamines (dust, pollen, and the cats in Sidi Bou Saïd — genuinely everywhere). Imodium. Aftersun."
+  }, {
+    l: "Useful",
+    t: "Offline maps downloaded before you go. Zip-lock bags — desert sand gets into everything. Light sarong."
+  }, {
+    l: "Snacks",
+    t: "Pack them for the desert tour specifically. Driving days are long and stops can be hours apart."
+  }]
+}];
+const mapStops = [{
+  id: 0,
+  name: "Tunis",
+  x: 105,
+  y: 52,
+  color: T.cobalt
+}, {
+  id: 1,
+  name: "Sidi Bou Saïd",
+  x: 118,
+  y: 44,
+  color: T.cobalt
+}, {
+  id: 2,
+  name: "Bizerte",
+  x: 96,
+  y: 28,
+  color: T.teal
+}, {
+  id: 3,
+  name: "Dougga",
+  x: 74,
+  y: 72,
+  color: T.olive
+}, {
+  id: 4,
+  name: "Sousse",
+  x: 114,
+  y: 118,
+  color: T.sky
+}, {
+  id: 5,
+  name: "Monastir",
+  x: 116,
+  y: 134,
+  color: T.sky
+}, {
+  id: 6,
+  name: "Kairouan",
+  x: 88,
+  y: 116,
+  color: T.gold
+}, {
+  id: 7,
+  name: "El Jem",
+  x: 104,
+  y: 154,
+  color: T.gold
+}, {
+  id: 8,
+  name: "Matmata",
+  x: 80,
+  y: 220,
+  color: T.fire
+}, {
+  id: 9,
+  name: "Sabria",
+  x: 88,
+  y: 252,
+  color: T.fire
+}, {
+  id: 10,
+  name: "Chott El Jerid",
+  x: 70,
+  y: 238,
+  color: T.gold
+}, {
+  id: 11,
+  name: "Chebika",
+  x: 60,
+  y: 210,
+  color: T.fire
+}];
+function Map({
+  activeIds,
+  onStopClick
+}) {
+  const active = activeIds.map(id => mapStops.find(s => s.id === id)).filter(Boolean);
+  return /*#__PURE__*/React.createElement("svg", {
+    viewBox: "0 0 200 340",
+    style: {
+      width: "100%"
+    }
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "M88 18 L95 14 L108 16 L120 22 L130 30 L135 42 L132 55 L128 65 L130 78 L128 90 L130 105 L128 118 L132 132 L128 145 L125 158 L120 170 L115 182 L112 196 L108 210 L104 225 L100 240 L96 255 L92 265 L88 272 L84 265 L80 252 L76 238 L72 224 L68 210 L64 196 L60 182 L58 168 L56 155 L58 142 L62 130 L65 118 L68 105 L70 92 L68 78 L66 64 L68 50 L72 38 L78 26 Z",
+    fill: "#EDE8DC",
+    stroke: "#D4C8B0",
+    strokeWidth: "1"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M60 185 L66 205 L70 220 L74 235 L78 250 L82 262 L88 272 L92 265 L96 255 L100 240 L104 225 L108 210 L112 196 L114 185 Z",
+    fill: T.sand,
+    opacity: "0.7"
+  }), active.length > 1 && active.map((s, i) => {
+    if (i === 0) return null;
+    const p = active[i - 1];
+    return /*#__PURE__*/React.createElement("line", {
+      key: i,
+      x1: p.x,
+      y1: p.y,
+      x2: s.x,
+      y2: s.y,
+      stroke: T.fire,
+      strokeWidth: "1.5",
+      strokeDasharray: "3 2",
+      opacity: "0.6"
+    });
+  }), mapStops.map(s => {
+    const on = activeIds.includes(s.id);
+    return /*#__PURE__*/React.createElement("g", {
+      key: s.id,
+      style: {
+        cursor: "pointer"
+      },
+      onClick: () => onStopClick?.(s)
+    }, on && /*#__PURE__*/React.createElement("circle", {
+      cx: s.x,
+      cy: s.y,
+      r: 12,
+      fill: s.color,
+      opacity: "0.18"
+    }), /*#__PURE__*/React.createElement("circle", {
+      cx: s.x,
+      cy: s.y,
+      r: on ? 6 : 3.5,
+      fill: on ? s.color : "#C4B8A0",
+      stroke: on ? T.white : "#E0D8C8",
+      strokeWidth: on ? 1.5 : 1
+    }), /*#__PURE__*/React.createElement("text", {
+      x: s.x + (s.x > 100 ? 9 : -9),
+      y: s.y + 3.5,
+      fontSize: "5.8",
+      fill: on ? T.char : T.stone,
+      fontWeight: on ? "600" : "400",
+      textAnchor: s.x > 100 ? "start" : "end",
+      fontFamily: "'DM Mono', monospace"
+    }, s.name));
+  }), /*#__PURE__*/React.createElement("text", {
+    x: "160",
+    y: "328",
+    fontSize: "6",
+    fill: T.fog,
+    fontFamily: "'DM Mono', monospace"
+  }, "N \u2191"));
+}
+function Tunisia() {
+  const [view, setView] = useState("stories");
+  const [si, setSi] = useState(0);
+  const [fi, setFi] = useState(0);
+  const s = stories[si];
+  const goStory = i => setSi(i);
+  const tabs = [{
+    k: "stories",
+    l: "Stories"
+  }, {
+    k: "map",
+    l: "Route"
+  }, {
+    k: "food",
+    l: "Eat & Drink"
+  }, {
+    k: "louage",
+    l: "Louage Guide"
+  }, {
+    k: "practical",
+    l: "Practical"
+  }];
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: F.ui,
+      background: T.cream,
+      minHeight: "100vh",
+      color: T.ink
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: T.cobalt,
+      position: "relative",
+      overflow: "hidden"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "absolute",
+      inset: 0,
+      opacity: 0.07,
+      backgroundImage: `repeating-linear-gradient(45deg, ${T.white} 0, ${T.white} 1px, transparent 0, transparent 50%), repeating-linear-gradient(-45deg, ${T.white} 0, ${T.white} 1px, transparent 0, transparent 50%)`,
+      backgroundSize: "24px 24px"
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "absolute",
+      bottom: -80,
+      right: -80,
+      width: 320,
+      height: 320,
+      borderRadius: "50%",
+      background: T.fire,
+      opacity: 0.12
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "relative",
+      maxWidth: 900,
+      margin: "0 auto",
+      padding: "48px 28px 40px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      marginBottom: 20
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: F.mono,
+      fontSize: 10,
+      letterSpacing: 4,
+      color: "rgba(255,255,255,0.45)",
+      textTransform: "uppercase"
+    }
+  }, "May 2026"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      height: 1,
+      background: "rgba(255,255,255,0.12)"
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: F.mono,
+      fontSize: 10,
+      letterSpacing: 4,
+      color: "rgba(255,255,255,0.45)",
+      textTransform: "uppercase"
+    }
+  }, "9 days")), /*#__PURE__*/React.createElement("h1", {
+    style: {
+      fontFamily: F.display,
+      fontSize: "clamp(4rem, 12vw, 8rem)",
+      fontWeight: 400,
+      color: T.white,
+      margin: "0 0 4px",
+      lineHeight: 0.88,
+      letterSpacing: "-3px"
+    }
+  }, "Tunisia"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontFamily: F.display,
+      fontStyle: "italic",
+      fontSize: "clamp(1.1rem, 3vw, 1.6rem)",
+      color: "rgba(255,255,255,0.6)",
+      margin: "14px 0 20px"
+    }
+  }, "Raw, beautiful, and wonderfully random."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      flexWrap: "wrap"
+    }
+  }, ["Tunis", "Bizerte", "Dougga", "Sousse", "Sahara", "Sidi Bou Saïd"].map(t => /*#__PURE__*/React.createElement("span", {
+    key: t,
+    style: {
+      fontFamily: F.mono,
+      fontSize: 10,
+      color: "rgba(255,255,255,0.65)",
+      letterSpacing: 2,
+      padding: "4px 10px",
+      border: "1px solid rgba(255,255,255,0.18)",
+      borderRadius: 2
+    }
+  }, t)))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: 3,
+      background: `linear-gradient(90deg, ${T.fire}, ${T.gold}, transparent)`
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: T.white,
+      borderBottom: `1px solid #E8E0D0`,
+      position: "sticky",
+      top: 0,
+      zIndex: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      maxWidth: 900,
+      margin: "0 auto",
+      display: "flex",
+      overflowX: "auto"
+    }
+  }, tabs.map(tab => /*#__PURE__*/React.createElement("button", {
+    key: tab.k,
+    onClick: () => setView(tab.k),
+    style: {
+      background: "transparent",
+      border: "none",
+      borderBottom: `3px solid ${view === tab.k ? T.fire : "transparent"}`,
+      padding: "14px 20px",
+      cursor: "pointer",
+      whiteSpace: "nowrap",
+      fontFamily: F.ui,
+      fontSize: 12,
+      fontWeight: view === tab.k ? 700 : 400,
+      color: view === tab.k ? T.fire : T.stone,
+      letterSpacing: "0.5px",
+      transition: "all 0.15s"
+    }
+  }, tab.l)))), view === "stories" && /*#__PURE__*/React.createElement("div", {
+    style: {
+      maxWidth: 900,
+      margin: "0 auto",
+      paddingBottom: 60
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: T.white,
+      borderBottom: `1px solid #E8E0D0`,
+      overflowX: "auto"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      minWidth: "max-content"
+    }
+  }, stories.map((st, i) => /*#__PURE__*/React.createElement("button", {
+    key: i,
+    onClick: () => goStory(i),
+    style: {
+      background: si === i ? st.accentBg : "transparent",
+      border: "none",
+      borderBottom: `3px solid ${si === i ? st.accent : "transparent"}`,
+      padding: "14px 20px",
+      cursor: "pointer",
+      whiteSpace: "nowrap",
+      fontFamily: F.ui,
+      transition: "all 0.15s"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: F.mono,
+      fontSize: 9,
+      letterSpacing: 3,
+      color: si === i ? st.accent : T.fog,
+      textTransform: "uppercase",
+      marginBottom: 3
+    }
+  }, st.date), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      fontWeight: si === i ? 700 : 400,
+      color: si === i ? T.ink : T.stone
+    }
+  }, st.emoji, " ", st.location))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: "36px 28px 0"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "1fr 240px",
+      gap: 40,
+      alignItems: "start"
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 24
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      alignItems: "center",
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: F.mono,
+      fontSize: 9,
+      letterSpacing: 4,
+      color: s.accent,
+      textTransform: "uppercase",
+      background: s.accentBg,
+      padding: "3px 8px",
+      borderRadius: 2
+    }
+  }, s.tag), !s.planned && /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: F.mono,
+      fontSize: 9,
+      letterSpacing: 3,
+      color: T.gold,
+      textTransform: "uppercase",
+      background: "#FBF4E0",
+      padding: "3px 8px",
+      borderRadius: 2
+    }
+  }, "not planned")), /*#__PURE__*/React.createElement("h2", {
+    style: {
+      fontFamily: F.display,
+      fontSize: "clamp(2.2rem, 5vw, 3.5rem)",
+      fontWeight: 400,
+      margin: "0 0 10px",
+      letterSpacing: "-1px",
+      lineHeight: 1,
+      color: T.ink
+    }
+  }, s.emoji, " ", s.location), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 15,
+      color: T.stone,
+      margin: 0,
+      lineHeight: 1.6,
+      fontStyle: "italic"
+    }
+  }, s.tagline)), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 15,
+      lineHeight: 1.75,
+      color: T.char,
+      margin: "0 0 28px",
+      padding: "14px 16px",
+      background: T.white,
+      borderRadius: 6,
+      border: `1px solid #EAE4D8`,
+      borderLeft: `3px solid ${s.accent}`
+    }
+  }, s.hero), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 28
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: F.mono,
+      fontSize: 9,
+      letterSpacing: 4,
+      color: T.stone,
+      textTransform: "uppercase",
+      marginBottom: 12,
+      display: "flex",
+      alignItems: "center",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("span", null, "What to do"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      height: 1,
+      background: "#E8E0D0"
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 8
+    }
+  }, s.bullets.map((b, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      display: "grid",
+      gridTemplateColumns: "32px 1fr",
+      gap: 10,
+      padding: "12px 14px",
+      background: T.white,
+      borderRadius: 6,
+      border: `1px solid #EAE4D8`
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 18
+    }
+  }, b.icon), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      fontWeight: 700,
+      color: T.ink,
+      marginBottom: 2
+    }
+  }, b.label), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: T.stone,
+      lineHeight: 1.5
+    }
+  }, b.sub)))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 24
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: F.mono,
+      fontSize: 9,
+      letterSpacing: 4,
+      color: T.stone,
+      textTransform: "uppercase",
+      marginBottom: 12,
+      display: "flex",
+      alignItems: "center",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("span", null, "The history underneath"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      height: 1,
+      background: "#E8E0D0"
+    }
+  })), s.history.map((h, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      display: "grid",
+      gridTemplateColumns: "110px 1fr",
+      borderBottom: `1px solid #EAE4D8`,
+      padding: "14px 0"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: F.mono,
+      fontSize: 9,
+      letterSpacing: 1.5,
+      color: s.accent,
+      textTransform: "uppercase",
+      paddingRight: 12,
+      paddingTop: 2,
+      lineHeight: 1.5
+    }
+  }, h.flag), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: T.char,
+      lineHeight: 1.75
+    }
+  }, h.text)))), s.practical?.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: s.accentBg,
+      borderRadius: 6,
+      padding: "14px 16px",
+      border: `1px solid ${s.accent}22`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: F.mono,
+      fontSize: 9,
+      letterSpacing: 3,
+      color: s.accent,
+      textTransform: "uppercase",
+      marginBottom: 10
+    }
+  }, "Practical notes"), s.practical.map((p, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      display: "flex",
+      gap: 8,
+      marginBottom: 6
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: s.accent,
+      flexShrink: 0
+    }
+  }, "\u2192"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      color: T.char,
+      lineHeight: 1.5
+    }
+  }, p))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "sticky",
+      top: 70
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: T.white,
+      border: `1px solid #EAE4D8`,
+      borderRadius: 8,
+      padding: 16,
+      marginBottom: 16
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: F.mono,
+      fontSize: 9,
+      letterSpacing: 3,
+      color: T.fog,
+      textTransform: "uppercase",
+      marginBottom: 12
+    }
+  }, "On the map"), /*#__PURE__*/React.createElement(Map, {
+    activeIds: s.mapIds,
+    onStopClick: () => {}
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: T.white,
+      border: `1px solid #EAE4D8`,
+      borderRadius: 8,
+      padding: 16
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: F.mono,
+      fontSize: 9,
+      letterSpacing: 3,
+      color: T.fog,
+      textTransform: "uppercase",
+      marginBottom: 14
+    }
+  }, "All chapters"), stories.map((st, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    onClick: () => goStory(i),
+    style: {
+      display: "flex",
+      gap: 10,
+      marginBottom: 12,
+      cursor: "pointer",
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 3,
+      height: 24,
+      background: si === i ? st.accent : "#E8E0D0",
+      borderRadius: 2,
+      flexShrink: 0,
+      transition: "0.2s"
+    }
+  }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: F.mono,
+      fontSize: 9,
+      color: T.fog,
+      letterSpacing: 2,
+      textTransform: "uppercase"
+    }
+  }, st.date), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: si === i ? T.ink : T.stone,
+      fontWeight: si === i ? 700 : 400
+    }
+  }, st.emoji, " ", st.location))))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      marginTop: 36,
+      paddingTop: 20,
+      borderTop: `1px solid #EAE4D8`
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => goStory(Math.max(0, si - 1)),
+    disabled: si === 0,
+    style: {
+      background: "transparent",
+      color: si === 0 ? T.fog : T.ink,
+      border: `1px solid ${si === 0 ? "#E8E0D0" : T.ink}`,
+      padding: "10px 20px",
+      borderRadius: 4,
+      cursor: si === 0 ? "default" : "pointer",
+      fontFamily: F.ui,
+      fontSize: 12
+    }
+  }, "\u2190 Prev"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: F.mono,
+      fontSize: 10,
+      color: T.fog,
+      alignSelf: "center",
+      letterSpacing: 2
+    }
+  }, si + 1, " / ", stories.length), /*#__PURE__*/React.createElement("button", {
+    onClick: () => goStory(Math.min(stories.length - 1, si + 1)),
+    disabled: si === stories.length - 1,
+    style: {
+      background: si === stories.length - 1 ? "transparent" : s.accent,
+      color: si === stories.length - 1 ? T.fog : T.white,
+      border: `1px solid ${si === stories.length - 1 ? "#E8E0D0" : s.accent}`,
+      padding: "10px 20px",
+      borderRadius: 4,
+      cursor: si === stories.length - 1 ? "default" : "pointer",
+      fontFamily: F.ui,
+      fontSize: 12,
+      fontWeight: 600
+    }
+  }, "Next \u2192")))), view === "map" && /*#__PURE__*/React.createElement("div", {
+    style: {
+      maxWidth: 900,
+      margin: "0 auto",
+      padding: "36px 28px 60px"
+    }
+  }, /*#__PURE__*/React.createElement("h2", {
+    style: {
+      fontFamily: F.display,
+      fontSize: "clamp(2rem, 4vw, 3rem)",
+      fontWeight: 400,
+      margin: "0 0 28px",
+      letterSpacing: "-1px"
+    }
+  }, "The Route"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "220px 1fr",
+      gap: 32
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: T.white,
+      border: `1px solid #EAE4D8`,
+      borderRadius: 8,
+      padding: 20
+    }
+  }, /*#__PURE__*/React.createElement(Map, {
+    activeIds: mapStops.map(s => s.id),
+    onStopClick: st => {
+      const idx = stories.findIndex(s => s.mapIds.includes(st.id));
+      if (idx !== -1) {
+        goStory(idx);
+        setView("stories");
+      }
+    }
+  }), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontFamily: F.mono,
+      fontSize: 10,
+      color: T.fog,
+      textAlign: "center",
+      marginTop: 10,
+      letterSpacing: 1
+    }
+  }, "tap to read that chapter")), /*#__PURE__*/React.createElement("div", null, stories.map((st, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    onClick: () => {
+      goStory(i);
+      setView("stories");
+    },
+    style: {
+      display: "flex",
+      gap: 16,
+      paddingBottom: 20,
+      marginBottom: 20,
+      borderBottom: i < stories.length - 1 ? `1px solid #EAE4D8` : "none",
+      cursor: "pointer"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 40,
+      height: 40,
+      borderRadius: "50%",
+      background: st.accentBg,
+      border: `2px solid ${st.accent}`,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0,
+      fontSize: 18
+    }
+  }, st.emoji), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 6,
+      alignItems: "center",
+      marginBottom: 3
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: F.mono,
+      fontSize: 9,
+      color: T.fog,
+      letterSpacing: 2,
+      textTransform: "uppercase"
+    }
+  }, st.date), !st.planned && /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: F.mono,
+      fontSize: 8,
+      color: T.gold,
+      letterSpacing: 2,
+      textTransform: "uppercase",
+      background: "#FBF4E0",
+      padding: "1px 6px",
+      borderRadius: 2
+    }
+  }, "unplanned")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: F.display,
+      fontSize: 18,
+      color: T.ink,
+      marginBottom: 4
+    }
+  }, st.location), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: T.stone,
+      lineHeight: 1.4
+    }
+  }, st.tagline.slice(0, 70), "\u2026"))))))), view === "food" && /*#__PURE__*/React.createElement("div", {
+    style: {
+      maxWidth: 900,
+      margin: "0 auto",
+      padding: "36px 28px 60px"
+    }
+  }, /*#__PURE__*/React.createElement("h2", {
+    style: {
+      fontFamily: F.display,
+      fontSize: "clamp(2rem, 4vw, 3rem)",
+      fontWeight: 400,
+      margin: "0 0 20px",
+      letterSpacing: "-1px"
+    }
+  }, "Eat & Drink"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      flexWrap: "wrap",
+      marginBottom: 32
+    }
+  }, foodGuide.map((f, i) => /*#__PURE__*/React.createElement("button", {
+    key: i,
+    onClick: () => setFi(i),
+    style: {
+      background: fi === i ? T.cobalt : T.white,
+      color: fi === i ? T.white : T.stone,
+      border: `1px solid ${fi === i ? T.cobalt : "#E8E0D0"}`,
+      padding: "6px 16px",
+      borderRadius: 20,
+      cursor: "pointer",
+      fontFamily: F.ui,
+      fontSize: 12,
+      fontWeight: fi === i ? 700 : 400,
+      transition: "all 0.15s"
+    }
+  }, f.flag, " ", f.city))), (() => {
+    const f = foodGuide[fi];
+    return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontFamily: F.display,
+        fontStyle: "italic",
+        fontSize: 15,
+        color: T.stone,
+        paddingBottom: 20,
+        borderBottom: `1px solid #EAE4D8`,
+        marginBottom: 24
+      }
+    }, f.note), f.tried.length > 0 && /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginBottom: 28
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: F.mono,
+        fontSize: 9,
+        letterSpacing: 4,
+        color: T.fire,
+        textTransform: "uppercase",
+        marginBottom: 12,
+        display: "flex",
+        alignItems: "center",
+        gap: 8
+      }
+    }, /*#__PURE__*/React.createElement("span", null, "Actually tried"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        height: 1,
+        background: "#EAE4D8"
+      }
+    })), f.tried.map((item, i) => /*#__PURE__*/React.createElement("div", {
+      key: i,
+      style: {
+        display: "grid",
+        gridTemplateColumns: "1fr auto",
+        gap: 16,
+        padding: "14px 16px",
+        background: T.white,
+        border: `1px solid #EAE4D8`,
+        borderRadius: 6,
+        marginBottom: 8
+      }
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: 8,
+        alignItems: "baseline",
+        marginBottom: 3
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 14,
+        fontWeight: 700,
+        color: T.ink
+      }
+    }, item.name), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontFamily: F.mono,
+        fontSize: 9,
+        color: T.fog,
+        letterSpacing: 1,
+        textTransform: "uppercase"
+      }
+    }, item.tag)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12,
+        color: T.stone,
+        lineHeight: 1.5
+      }
+    }, item.note)), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontFamily: F.mono,
+        fontSize: 10,
+        color: T.cobalt,
+        whiteSpace: "nowrap",
+        alignSelf: "flex-start",
+        letterSpacing: 1
+      }
+    }, item.v)))), f.recs.length > 0 && /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginBottom: 28
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: F.mono,
+        fontSize: 9,
+        letterSpacing: 4,
+        color: T.olive,
+        textTransform: "uppercase",
+        marginBottom: 12,
+        display: "flex",
+        alignItems: "center",
+        gap: 8
+      }
+    }, /*#__PURE__*/React.createElement("span", null, "Also recommended"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        height: 1,
+        background: "#EAE4D8"
+      }
+    })), f.recs.map((item, i) => /*#__PURE__*/React.createElement("div", {
+      key: i,
+      style: {
+        padding: "12px 14px",
+        background: T.sand,
+        border: `1px solid #E0D4B8`,
+        borderRadius: 6,
+        marginBottom: 8
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: 8,
+        alignItems: "baseline",
+        marginBottom: 3
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 13,
+        fontWeight: 700,
+        color: T.ink
+      }
+    }, item.name), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontFamily: F.mono,
+        fontSize: 9,
+        color: T.fog,
+        letterSpacing: 1,
+        textTransform: "uppercase"
+      }
+    }, item.tag)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12,
+        color: T.stone,
+        lineHeight: 1.5
+      }
+    }, item.note)))), f.street.length > 0 && /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginBottom: 28
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: F.mono,
+        fontSize: 9,
+        letterSpacing: 4,
+        color: T.gold,
+        textTransform: "uppercase",
+        marginBottom: 12,
+        display: "flex",
+        alignItems: "center",
+        gap: 8
+      }
+    }, /*#__PURE__*/React.createElement("span", null, "Street food"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        height: 1,
+        background: "#EAE4D8"
+      }
+    })), f.street.map((item, i) => /*#__PURE__*/React.createElement("div", {
+      key: i,
+      style: {
+        display: "flex",
+        gap: 10,
+        marginBottom: 8
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: T.gold
+      }
+    }, "\u2192"), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 13,
+        color: T.char,
+        lineHeight: 1.6
+      }
+    }, item)))), f.skip?.length > 0 && /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: "12px 16px",
+        background: "#FBF0EA",
+        border: `1px solid ${T.fire}33`,
+        borderRadius: 6
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: F.mono,
+        fontSize: 9,
+        letterSpacing: 3,
+        color: T.fire,
+        textTransform: "uppercase",
+        marginBottom: 8
+      }
+    }, "Skip"), f.skip.map((item, i) => /*#__PURE__*/React.createElement("div", {
+      key: i,
+      style: {
+        fontSize: 12,
+        color: T.fire
+      }
+    }, item))));
+  })()), view === "louage" && /*#__PURE__*/React.createElement("div", {
+    style: {
+      maxWidth: 900,
+      margin: "0 auto",
+      padding: "36px 28px 60px"
+    }
+  }, /*#__PURE__*/React.createElement("h2", {
+    style: {
+      fontFamily: F.display,
+      fontSize: "clamp(2rem, 4vw, 3rem)",
+      fontWeight: 400,
+      margin: "0 0 8px",
+      letterSpacing: "-1px"
+    }
+  }, "The Louage Guide"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontFamily: F.display,
+      fontStyle: "italic",
+      fontSize: 15,
+      color: T.stone,
+      margin: "0 0 28px"
+    }
+  }, "Everything you need to know about getting around Tunisia the local way."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: 10
+    }
+  }, louageItems.map((item, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      background: T.white,
+      border: `1px solid #EAE4D8`,
+      borderRadius: 8,
+      padding: "16px 20px",
+      display: "grid",
+      gridTemplateColumns: "32px 1fr",
+      gap: 14
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 20
+    }
+  }, item.icon), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      fontWeight: 700,
+      color: T.ink,
+      marginBottom: 4
+    }
+  }, item.t), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: T.stone,
+      lineHeight: 1.7
+    }
+  }, item.b))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 20,
+      padding: "16px 20px",
+      background: T.azure,
+      border: `1px solid ${T.cobalt}22`,
+      borderRadius: 8
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: F.mono,
+      fontSize: 9,
+      letterSpacing: 4,
+      color: T.cobalt,
+      textTransform: "uppercase",
+      marginBottom: 8
+    }
+  }, "The one thing"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 14,
+      color: T.cobalt,
+      lineHeight: 1.75,
+      margin: 0,
+      fontWeight: 500
+    }
+  }, "Give yourself more time than you think. Transport in Tunisia is reliable enough, but it runs on its own schedule. Build buffer into every journey, especially on weekends."))), view === "practical" && /*#__PURE__*/React.createElement("div", {
+    style: {
+      maxWidth: 900,
+      margin: "0 auto",
+      padding: "36px 28px 60px"
+    }
+  }, /*#__PURE__*/React.createElement("h2", {
+    style: {
+      fontFamily: F.display,
+      fontSize: "clamp(2rem, 4vw, 3rem)",
+      fontWeight: 400,
+      margin: "0 0 8px",
+      letterSpacing: "-1px"
+    }
+  }, "Before You Go"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontFamily: F.display,
+      fontStyle: "italic",
+      fontSize: 15,
+      color: T.stone,
+      margin: "0 0 28px"
+    }
+  }, "Everything we wish someone had told us."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: 16
+    }
+  }, practicalItems.map((sec, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      background: T.white,
+      border: `1px solid #EAE4D8`,
+      borderRadius: 8,
+      padding: "20px 22px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 10,
+      alignItems: "center",
+      marginBottom: 16,
+      paddingBottom: 14,
+      borderBottom: `1px solid #EAE4D8`
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 18
+    }
+  }, sec.icon), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: F.mono,
+      fontSize: 10,
+      letterSpacing: 3,
+      color: T.char,
+      textTransform: "uppercase"
+    }
+  }, sec.section)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: 12
+    }
+  }, sec.items.map((item, j) => /*#__PURE__*/React.createElement("div", {
+    key: j,
+    style: {
+      display: "grid",
+      gridTemplateColumns: "110px 1fr",
+      gap: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: F.mono,
+      fontSize: 10,
+      color: T.cobalt,
+      fontWeight: 500,
+      lineHeight: 1.5,
+      paddingTop: 1
+    }
+  }, item.l), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: T.stone,
+      lineHeight: 1.75
+    }
+  }, item.t)))))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: T.cobalt,
+      padding: "28px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      maxWidth: 900,
+      margin: "0 auto",
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: F.display,
+      fontStyle: "italic",
+      fontSize: 18,
+      color: "rgba(255,255,255,0.55)"
+    }
+  }, "Tunisia, May 2026"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 6
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 8,
+      height: 8,
+      borderRadius: "50%",
+      background: "rgba(255,255,255,0.25)"
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 8,
+      height: 8,
+      borderRadius: "50%",
+      background: T.fire
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 8,
+      height: 8,
+      borderRadius: "50%",
+      background: T.gold
+    }
+  })))));
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  React.createElement(Tunisia)
+);
+</script>
+</body>
+</html>
