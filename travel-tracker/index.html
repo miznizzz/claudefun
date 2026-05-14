@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Grand Tour</title>
+<style>* { box-sizing: border-box; margin: 0; padding: 0; } body { background: #0d2420; }</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script>
+window.storage = {
+  get: function(key) {
+    try { var v = localStorage.getItem(key); return Promise.resolve(v ? { value: v } : null); }
+    catch(e) { return Promise.resolve(null); }
+  },
+  set: function(key, value) {
+    try { localStorage.setItem(key, value); } catch(e) {}
+    return Promise.resolve();
+  }
+};
+</script>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+const C = {
+  bg:"#0d2420", card:"#132c27", border:"#1c3d37",
+  text:"#f0ece0", muted:"#7a9e96", dim:"#3d5e58",
+  saffron:"#e8b430", done:"#52c47a", partial:"#e07840",
+  planned:"#b880f0", toGo:"#4a7a74",
+};
+
+const STATUS_CFG = {
+  done:    { label:"Done",    color:C.done,    bg:"rgba(82,196,122,0.1)"  },
+  partial: { label:"Partial", color:C.partial, bg:"rgba(224,120,64,0.1)"  },
+  planned: { label:"Planned", color:C.planned, bg:"rgba(184,128,240,0.1)" },
+  toGo:    { label:"To Go",   color:C.toGo,   bg:"rgba(74,122,116,0.15)" },
+};
+
+const STATUS_ORDER = ["done","partial","planned","toGo"];
+
+const TRIP_CFG = {
+  completed: { label:"DONE",      color:"#52c47a", bg:"rgba(82,196,122,0.08)" },
+  confirmed: { label:"CONFIRMED", color:"#52c47a", bg:"rgba(82,196,122,0.1)"  },
+};
+
+const STAMP_COLORS = {
+  europe:"#6888d0", africa:"#d08040", americas:"#9060c8",
+  middleEast:"#38a898", asia:"#c85040", centralAsia:"#8898b8", oceania:"#3898c8",
+};
+
+const NUM_TO_ID = {
+  724:"es",380:"it",826:"gb",250:"fr",276:"de",40:"at",300:"gr",620:"pt",
+  56:"be",348:"hu",191:"hr",8:"al",499:"me",100:"bg",705:"si",428:"lv",
+  233:"ee",208:"dk",752:"se",642:"ro",203:"cz",703:"sk",470:"mt",372:"ie",
+  528:"nl",756:"ch",688:"rs",807:"mk",498:"md",440:"lt",616:"pl",70:"ba",
+  578:"no",246:"fi",352:"is",196:"cy",442:"lu",
+  788:"tn",288:"gh",504:"ma",818:"eg",12:"dz",404:"ke",834:"tz",710:"za",
+  231:"et",686:"sn",646:"rw",566:"ng",
+  840:"us",192:"cu",558:"ni",591:"pa",484:"mx",124:"ca",170:"co",76:"br",
+  32:"ar",604:"pe",188:"cr",152:"cl",218:"ec",68:"bo",
+  784:"ae",512:"om",634:"qa",400:"jo",422:"lb",376:"il",268:"ge",51:"am",
+  31:"az",682:"sa",364:"ir",
+  702:"sg",116:"kh",144:"lk",410:"kr",458:"my",586:"pk",392:"jp",764:"th",
+  418:"la",704:"vn",360:"id",356:"in",608:"ph",156:"cn",524:"np",104:"mm",496:"mn",
+  860:"uz",398:"kz",417:"kg",762:"tj",795:"tm",4:"af",
+  36:"au",554:"nz",242:"fj",882:"ws",
+};
+
+const CONTINENTS = [
+  {id:"europe",label:"Europe"},{id:"africa",label:"Africa"},
+  {id:"americas",label:"Americas"},{id:"middleEast",label:"Middle East"},
+  {id:"asia",label:"Asia"},{id:"centralAsia",label:"Central Asia"},
+  {id:"oceania",label:"Oceania"},
+];
+
+const NAV = [
+  {id:"map",label:"MAP",icon:"◎"},
+  {id:"list",label:"GRID",icon:"⊞"},
+  {id:"trips",label:"TRIPS",icon:"✈"},
+  {id:"stats",label:"STATS",icon:"◈"},
+  {id:"stamps",label:"STAMPS",icon:"⬡"},
+];
+
+const TRIPS = [
+  { id:"puglia-2026",  title:"Puglia, Italy", flags:"🇮🇹", tripStatus:"confirmed" },
+  { id:"mexico-2026",  title:"Mexico",        flags:"🇲🇽", tripStatus:"confirmed" },
+];
+
+const RAW = {
+  europe:[
+    {id:"es",name:"Spain",flag:"🇪🇸",status:"partial",note:"Multiple visits",cities:[
+      {name:"Cordoba",v:1},{name:"Granada",v:1},{name:"Madrid",v:1},{name:"Barcelona",v:1},{name:"Malaga",v:1},
+      {name:"Seville",v:0,p:1},{name:"San Sebastian",v:0},{name:"Valencia",v:0},{name:"Bilbao",v:0},
+      {name:"Mallorca",v:0},{name:"Ibiza",v:0},{name:"Tenerife",v:0},
+    ]},
+    {id:"it",name:"Italy",flag:"🇮🇹",status:"partial",note:"Le Marche heartland",cities:[
+      {name:"Rome",v:1},{name:"Milan",v:1},{name:"Bologna",v:1},{name:"Positano",v:1},{name:"Florence",v:1},
+      {name:"Venice",v:1},{name:"Verona",v:1},{name:"Pisa",v:1},{name:"Ravenna",v:1},{name:"Cremona",v:1},
+      {name:"Ancona",v:1},{name:"Macerata",v:1},{name:"Sirolo",v:1},{name:"Cingoli",v:1},{name:"Treia",v:1},
+      {name:"Offagna",v:1},{name:"Montefano",v:1},{name:"Belvedere Ostrense",v:1},{name:"Portico di Romagna",v:1},
+      {name:"Puglia",v:0,p:1},{name:"Naples",v:0},{name:"Sicily",v:0},{name:"Turin",v:0},{name:"Cinque Terre",v:0},
+    ]},
+    {id:"gb",name:"United Kingdom",flag:"🇬🇧",status:"partial",note:"Home base — extensively explored",cities:[
+      {name:"London",v:1},
+      {name:"Edinburgh",v:1},{name:"Glasgow",v:1},{name:"Isle of Skye",v:1},{name:"Inverness",v:1},
+      {name:"Glencoe",v:1},{name:"Loch Lomond",v:1},{name:"Loch Ness",v:1},{name:"Burns Country (Ayrshire)",v:1},
+      {name:"Brighton",v:1},{name:"Hastings",v:1},{name:"Battle",v:1},{name:"Rye",v:1},{name:"Lewes",v:1},
+      {name:"Whitstable",v:1},{name:"Margate",v:1},{name:"Deal",v:1},{name:"Folkestone",v:1},
+      {name:"Hever Castle",v:1},{name:"Canterbury",v:1},{name:"Winchester",v:1},{name:"Arundel",v:1},
+      {name:"Oxford",v:1},{name:"Cambridge",v:1},{name:"Windsor",v:1},{name:"Stratford-upon-Avon",v:1},
+      {name:"Goring",v:1},{name:"Bradford on Avon",v:1},{name:"Bournemouth",v:1},{name:"Stonehenge",v:1},
+      {name:"Bath",v:1},{name:"York",v:1},{name:"Harrogate",v:1},{name:"Whitby",v:1},
+      {name:"Yorkshire Dales",v:1},{name:"Leeds",v:1},{name:"Manchester",v:1},{name:"Birmingham",v:1},
+      {name:"Belfast",v:0,p:1},{name:"Lake District",v:0},{name:"Cornwall",v:0},
+      {name:"Cardiff",v:0},{name:"Snowdonia",v:0},{name:"Norfolk Broads",v:0},
+    ]},
+    {id:"fr",name:"France",flag:"🇫🇷",status:"partial",cities:[
+      {name:"Paris",v:1},{name:"Nice",v:1},{name:"Provence",v:1},
+      {name:"Lyon",v:0},{name:"Bordeaux",v:0},{name:"Marseille",v:0},{name:"Strasbourg",v:0},{name:"Normandy",v:0},
+    ]},
+    {id:"de",name:"Germany",flag:"🇩🇪",status:"partial",cities:[
+      {name:"Berlin",v:1},{name:"Munich",v:1},{name:"Hamburg",v:1},
+      {name:"Cologne",v:0},{name:"Frankfurt",v:0},{name:"Dresden",v:0},{name:"Heidelberg",v:0},
+    ]},
+    {id:"at",name:"Austria",flag:"🇦🇹",status:"partial",cities:[
+      {name:"Vienna",v:1},{name:"Salzburg",v:1},{name:"Innsbruck",v:0},{name:"Hallstatt",v:0},{name:"Graz",v:0},
+    ]},
+    {id:"gr",name:"Greece",flag:"🇬🇷",status:"partial",cities:[
+      {name:"Athens",v:1},{name:"Santorini",v:1},{name:"Crete",v:1},
+      {name:"Rhodes",v:0},{name:"Mykonos",v:0},{name:"Corfu",v:0},{name:"Thessaloniki",v:0},{name:"Meteora",v:0},
+    ]},
+    {id:"pt",name:"Portugal",flag:"🇵🇹",status:"done",cities:[
+      {name:"Porto",v:1},{name:"Lisbon",v:1},{name:"Sintra",v:1},{name:"Algarve",v:0},{name:"Alentejo",v:0},
+    ]},
+    {id:"be",name:"Belgium",flag:"🇧🇪",status:"done",cities:[
+      {name:"Brussels",v:1},{name:"Ghent",v:1},{name:"Antwerp",v:1},{name:"Bruges",v:0},
+    ]},
+    {id:"hu",name:"Hungary",flag:"🇭🇺",status:"done",cities:[{name:"Budapest",v:1}]},
+    {id:"hr",name:"Croatia",flag:"🇭🇷",status:"done",cities:[
+      {name:"Dubrovnik",v:1},{name:"Split",v:1},{name:"Hvar",v:0},{name:"Plitvice Lakes",v:0},{name:"Rovinj",v:0},
+    ]},
+    {id:"al",name:"Albania",flag:"🇦🇱",status:"done",cities:[
+      {name:"Tirana",v:1},{name:"Gjirokastra",v:0},{name:"Berat",v:0},{name:"Saranda",v:0},
+    ]},
+    {id:"me",name:"Montenegro",flag:"🇲🇪",status:"done",cities:[
+      {name:"Kotor",v:1},{name:"Perast",v:1},{name:"Podgorica",v:1},{name:"Budva",v:0},
+    ]},
+    {id:"bg",name:"Bulgaria",flag:"🇧🇬",status:"done",cities:[
+      {name:"Sofia",v:1},{name:"Plovdiv",v:0},{name:"Varna",v:0},
+    ]},
+    {id:"si",name:"Slovenia",flag:"🇸🇮",status:"done",cities:[
+      {name:"Ljubljana",v:1},{name:"Lake Bled",v:1},{name:"Piran",v:0},
+    ]},
+    {id:"lv",name:"Latvia",flag:"🇱🇻",status:"done",cities:[{name:"Riga",v:1}]},
+    {id:"ee",name:"Estonia",flag:"🇪🇪",status:"done",cities:[{name:"Tallinn",v:1}]},
+    {id:"dk",name:"Denmark",flag:"🇩🇰",status:"done",cities:[{name:"Copenhagen",v:1},{name:"Aarhus",v:0}]},
+    {id:"se",name:"Sweden",flag:"🇸🇪",status:"done",cities:[{name:"Stockholm",v:1},{name:"Gothenburg",v:0}]},
+    {id:"ro",name:"Romania",flag:"🇷🇴",status:"done",cities:[
+      {name:"Bucharest",v:1},{name:"Brasov",v:1},{name:"Sighisoara",v:1},{name:"Cluj-Napoca",v:0},{name:"Sibiu",v:0},
+    ]},
+    {id:"cz",name:"Czech Rep.",flag:"🇨🇿",status:"done",cities:[
+      {name:"Prague",v:1},{name:"Cesky Krumlov",v:1},{name:"Brno",v:0},
+    ]},
+    {id:"sk",name:"Slovakia",flag:"🇸🇰",status:"done",cities:[{name:"Bratislava",v:1},{name:"Kosice",v:0}]},
+    {id:"mt",name:"Malta",flag:"🇲🇹",status:"done",cities:[
+      {name:"Valletta",v:1},{name:"Mdina",v:1},{name:"Gozo",v:0},
+    ]},
+    {id:"nl",name:"Netherlands",flag:"🇳🇱",status:"toGo",cities:[]},
+    {id:"ch",name:"Switzerland",flag:"🇨🇭",status:"toGo",cities:[]},
+    {id:"ie",name:"Ireland",flag:"🇮🇪",status:"toGo",cities:[]},
+    {id:"rs",name:"Serbia",flag:"🇷🇸",status:"toGo",cities:[]},
+    {id:"mk",name:"N. Macedonia",flag:"🇲🇰",status:"toGo",cities:[]},
+    {id:"md",name:"Moldova",flag:"🇲🇩",status:"toGo",cities:[]},
+    {id:"lt",name:"Lithuania",flag:"🇱🇹",status:"toGo",cities:[]},
+    {id:"pl",name:"Poland",flag:"🇵🇱",status:"toGo",cities:[]},
+    {id:"ba",name:"Bosnia",flag:"🇧🇦",status:"toGo",cities:[]},
+    {id:"xk",name:"Kosovo",flag:"🇽🇰",status:"toGo",cities:[]},
+    {id:"no",name:"Norway",flag:"🇳🇴",status:"toGo",cities:[]},
+    {id:"fi",name:"Finland",flag:"🇫🇮",status:"toGo",cities:[]},
+    {id:"is",name:"Iceland",flag:"🇮🇸",status:"toGo",cities:[]},
+    {id:"cy",name:"Cyprus",flag:"🇨🇾",status:"toGo",cities:[]},
+    {id:"lu",name:"Luxembourg",flag:"🇱🇺",status:"toGo",cities:[]},
+  ],
+  africa:[
+    {id:"tn",name:"Tunisia",flag:"🇹🇳",status:"done",note:"May 2026",cities:[
+      {name:"Tunis",v:1},{name:"Sidi Bou Said",v:1},{name:"Sousse",v:1},{name:"Sahara Tour",v:1},
+      {name:"Djerba",v:0},{name:"Dougga",v:0},
+    ]},
+    {id:"gh",name:"Ghana",flag:"🇬🇭",status:"done",cities:[
+      {name:"Accra",v:1},{name:"Cape Coast",v:1},{name:"Kumasi",v:0},
+    ]},
+    {id:"ma",name:"Morocco",flag:"🇲🇦",status:"partial",cities:[
+      {name:"Marrakech",v:1},{name:"Essaouira",v:1},
+      {name:"Fes",v:0},{name:"Chefchaouen",v:0},{name:"Casablanca",v:0},{name:"Tangier",v:0},{name:"Sahara (Merzouga)",v:0},
+    ]},
+    {id:"eg",name:"Egypt",flag:"🇪🇬",status:"partial",cities:[
+      {name:"Cairo",v:1},{name:"Luxor",v:0},{name:"Aswan",v:0},{name:"Alexandria",v:0},{name:"Siwa Oasis",v:0},
+    ]},
+    {id:"dz",name:"Algeria",flag:"🇩🇿",status:"toGo",cities:[]},
+    {id:"ke",name:"Kenya",flag:"🇰🇪",status:"toGo",cities:[]},
+    {id:"tz",name:"Tanzania",flag:"🇹🇿",status:"toGo",cities:[]},
+    {id:"za",name:"South Africa",flag:"🇿🇦",status:"toGo",cities:[]},
+    {id:"et",name:"Ethiopia",flag:"🇪🇹",status:"toGo",cities:[]},
+    {id:"sn",name:"Senegal",flag:"🇸🇳",status:"toGo",cities:[]},
+    {id:"rw",name:"Rwanda",flag:"🇷🇼",status:"toGo",cities:[]},
+    {id:"ng",name:"Nigeria",flag:"🇳🇬",status:"toGo",cities:[]},
+  ],
+  americas:[
+    {id:"us",name:"USA",flag:"🇺🇸",status:"partial",note:"Multiple visits",cities:[
+      {name:"New York City",v:1},{name:"Los Angeles",v:1},{name:"Chicago",v:1},{name:"Miami",v:1},
+      {name:"San Francisco",v:1},{name:"Las Vegas",v:1},{name:"Washington DC",v:1},{name:"Boston",v:1},
+      {name:"New Orleans",v:0},{name:"Nashville",v:0},{name:"Hawaii",v:0},{name:"Portland",v:0},
+    ]},
+    {id:"cu",name:"Cuba",flag:"🇨🇺",status:"done",cities:[
+      {name:"Havana",v:1},{name:"Trinidad",v:0},{name:"Vinales",v:0},
+    ]},
+    {id:"ni",name:"Nicaragua",flag:"🇳🇮",status:"done",cities:[
+      {name:"Granada",v:1},{name:"Leon",v:1},{name:"Ometepe Island",v:0},
+    ]},
+    {id:"pa",name:"Panama",flag:"🇵🇦",status:"done",cities:[
+      {name:"Panama City",v:1},{name:"Bocas del Toro",v:0},{name:"Boquete",v:0},
+    ]},
+    {id:"ca",name:"Canada",flag:"🇨🇦",status:"done",cities:[
+      {name:"Toronto",v:1},{name:"Vancouver",v:0},{name:"Montreal",v:0},{name:"Quebec City",v:0},{name:"Banff",v:0},
+    ]},
+    {id:"mx",name:"Mexico",flag:"🇲🇽",status:"planned",note:"Nov/Dec 2026",cities:[
+      {name:"Mexico City",v:0,p:1},{name:"Oaxaca",v:0,p:1},{name:"Puerto Escondido",v:0,p:1},
+    ]},
+    {id:"co",name:"Colombia",flag:"🇨🇴",status:"toGo",cities:[]},
+    {id:"br",name:"Brazil",flag:"🇧🇷",status:"toGo",cities:[]},
+    {id:"ar",name:"Argentina",flag:"🇦🇷",status:"toGo",cities:[]},
+    {id:"pe",name:"Peru",flag:"🇵🇪",status:"toGo",cities:[]},
+    {id:"cr",name:"Costa Rica",flag:"🇨🇷",status:"toGo",cities:[]},
+    {id:"cl",name:"Chile",flag:"🇨🇱",status:"toGo",cities:[]},
+    {id:"ec",name:"Ecuador",flag:"🇪🇨",status:"toGo",cities:[]},
+    {id:"bo",name:"Bolivia",flag:"🇧🇴",status:"toGo",cities:[]},
+  ],
+  middleEast:[
+    {id:"ae",name:"UAE",flag:"🇦🇪",status:"done",cities:[
+      {name:"Dubai",v:1},{name:"Abu Dhabi",v:1},{name:"Sharjah",v:0},
+    ]},
+    {id:"om",name:"Oman",flag:"🇴🇲",status:"done",cities:[
+      {name:"Muscat",v:1},{name:"Nizwa",v:0},{name:"Wahiba Sands",v:0},{name:"Wadi Shab",v:0},
+    ]},
+    {id:"qa",name:"Qatar",flag:"🇶🇦",status:"done",cities:[{name:"Doha",v:1}]},
+    {id:"jo",name:"Jordan",flag:"🇯🇴",status:"toGo",cities:[]},
+    {id:"lb",name:"Lebanon",flag:"🇱🇧",status:"toGo",cities:[]},
+    {id:"il",name:"Israel/Pal.",flag:"🇮🇱",status:"toGo",cities:[]},
+    {id:"ge",name:"Georgia",flag:"🇬🇪",status:"toGo",cities:[]},
+    {id:"am",name:"Armenia",flag:"🇦🇲",status:"toGo",cities:[]},
+    {id:"az",name:"Azerbaijan",flag:"🇦🇿",status:"toGo",cities:[]},
+    {id:"sa",name:"Saudi Arabia",flag:"🇸🇦",status:"toGo",cities:[]},
+    {id:"ir",name:"Iran",flag:"🇮🇷",status:"toGo",cities:[]},
+  ],
+  asia:[
+    {id:"sg",name:"Singapore",flag:"🇸🇬",status:"done",cities:[{name:"Singapore",v:1}]},
+    {id:"kh",name:"Cambodia",flag:"🇰🇭",status:"done",cities:[
+      {name:"Siem Reap",v:1},{name:"Phnom Penh",v:1},
+    ]},
+    {id:"lk",name:"Sri Lanka",flag:"🇱🇰",status:"done",cities:[
+      {name:"Colombo",v:1},{name:"South Coast",v:1},
+      {name:"Sigiriya",v:0},{name:"Kandy",v:0},{name:"Ella",v:0},{name:"Galle",v:0},
+    ]},
+    {id:"kr",name:"South Korea",flag:"🇰🇷",status:"partial",cities:[
+      {name:"Seoul",v:1},{name:"Busan",v:0},{name:"Jeju Island",v:0},{name:"Gyeongju",v:0},
+    ]},
+    {id:"my",name:"Malaysia",flag:"🇲🇾",status:"partial",cities:[
+      {name:"Kuala Lumpur",v:1},{name:"Penang",v:0},{name:"Langkawi",v:0},{name:"Borneo",v:0},
+    ]},
+    {id:"pk",name:"Pakistan",flag:"🇵🇰",status:"partial",note:"Childhood home + Northern Areas",cities:[
+      {name:"Karachi",v:1},{name:"Lahore",v:1},{name:"Islamabad",v:1},
+      {name:"Hunza",v:1},{name:"Skardu",v:1},{name:"Kailash Valley",v:1},{name:"Minimarg",v:1},
+      {name:"Peshawar",v:0},{name:"Multan",v:0},
+    ]},
+    {id:"jp",name:"Japan",flag:"🇯🇵",status:"planned",note:"Future",cities:[]},
+    {id:"th",name:"Thailand",flag:"🇹🇭",status:"planned",note:"Future",cities:[]},
+    {id:"la",name:"Laos",flag:"🇱🇦",status:"planned",note:"Future",cities:[]},
+    {id:"vn",name:"Vietnam",flag:"🇻🇳",status:"toGo",cities:[]},
+    {id:"id",name:"Indonesia",flag:"🇮🇩",status:"toGo",cities:[]},
+    {id:"in",name:"India",flag:"🇮🇳",status:"toGo",cities:[]},
+    {id:"ph",name:"Philippines",flag:"🇵🇭",status:"toGo",cities:[]},
+    {id:"cn",name:"China",flag:"🇨🇳",status:"done",note:"Shanghai as a kid",cities:[{name:"Shanghai",v:1},{name:"Beijing",v:0},{name:"Xi'an",v:0},{name:"Chengdu",v:0},{name:"Hong Kong",v:1}]},
+    {id:"tw",name:"Taiwan",flag:"🇹🇼",status:"toGo",cities:[]},
+    {id:"np",name:"Nepal",flag:"🇳🇵",status:"toGo",cities:[]},
+    {id:"mm",name:"Myanmar",flag:"🇲🇲",status:"toGo",cities:[]},
+    {id:"mn",name:"Mongolia",flag:"🇲🇳",status:"toGo",cities:[]},
+  ],
+  centralAsia:[
+    {id:"uz",name:"Uzbekistan",flag:"🇺🇿",status:"planned",note:"Future",cities:[]},
+    {id:"kz",name:"Kazakhstan",flag:"🇰🇿",status:"planned",note:"Future",cities:[]},
+    {id:"kg",name:"Kyrgyzstan",flag:"🇰🇬",status:"planned",note:"Future",cities:[]},
+    {id:"tj",name:"Tajikistan",flag:"🇹🇯",status:"planned",note:"Pamir Highway",cities:[]},
+    {id:"tm",name:"Turkmenistan",flag:"🇹🇲",status:"planned",note:"Future",cities:[]},
+    {id:"af",name:"Afghanistan",flag:"🇦🇫",status:"toGo",cities:[]},
+  ],
+  oceania:[
+    {id:"au",name:"Australia",flag:"🇦🇺",status:"partial",cities:[
+      {name:"Sydney",v:1},{name:"Melbourne",v:1},{name:"Brisbane",v:1},{name:"Cairns",v:1},{name:"Gold Coast",v:1},
+      {name:"Perth",v:0},{name:"Uluru",v:0},{name:"Tasmania",v:0},{name:"Adelaide",v:0},
+    ]},
+    {id:"nz",name:"New Zealand",flag:"🇳🇿",status:"partial",cities:[
+      {name:"Auckland",v:1},{name:"Wellington",v:1},
+      {name:"Queenstown",v:0},{name:"Rotorua",v:0},{name:"Milford Sound",v:0},{name:"Christchurch",v:0},
+    ]},
+    {id:"fj",name:"Fiji",flag:"🇫🇯",status:"toGo",cities:[]},
+    {id:"ws",name:"Samoa",flag:"🇼🇸",status:"toGo",cities:[]},
+  ],
+};
+
+function norm(list) {
+  return list.map(function(c) {
+    return Object.assign({}, c, {
+      cities: (c.cities || []).map(function(ci) {
+        return { name:ci.name, visited:ci.v===1, planned:ci.p===1 };
+      })
+    });
+  });
+}
+var INITIAL = {};
+Object.keys(RAW).forEach(function(k) { INITIAL[k] = norm(RAW[k]); });
+
+function WorldMap(props) {
+  var svgRef = useRef(null);
+  var topoLoaded = useRef(false);
+  var [geo, setGeo] = useState(null);
+
+  useEffect(function() {
+    if (window.topojson) { load(); return; }
+    var s = document.createElement("script");
+    s.src = "https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js";
+    s.onload = load;
+    document.head.appendChild(s);
+  }, []);
+
+  function load() {
+    if (topoLoaded.current) return;
+    topoLoaded.current = true;
+    fetch("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json")
+      .then(function(r) { return r.json(); })
+      .then(function(t) { setGeo(window.topojson.feature(t, t.objects.countries)); })
+      .catch(function() {});
+  }
+
+  useEffect(function() {
+    if (!geo || !svgRef.current) return;
+    var el = svgRef.current;
+    var W = el.clientWidth || 340, H = Math.round(W * 0.54);
+    el.setAttribute("viewBox", "0 0 " + W + " " + H);
+    var proj = d3.geoNaturalEarth1().scale(W / 6.2).translate([W / 2, H / 2]);
+    var path = d3.geoPath().projection(proj);
+    var flat = Object.values(props.all).reduce(function(a, arr) { return a.concat(arr); }, []);
+    var colorMap = { done:C.done, partial:C.partial, planned:C.planned, toGo:C.dim };
+
+    d3.select(el).selectAll("*").remove();
+    d3.select(el).append("rect").attr("width", W).attr("height", H).attr("fill", "#0a1e1b");
+    d3.select(el).selectAll("path").data(geo.features).join("path")
+      .attr("d", path)
+      .attr("fill", function(d) {
+        var id = NUM_TO_ID[+d.id];
+        var c = id && flat.find(function(x) { return x.id === id; });
+        return c ? colorMap[c.status] : C.dim + "40";
+      })
+      .attr("stroke", "#0d2420").attr("stroke-width", 0.4)
+      .attr("opacity", function(d) {
+        var id = NUM_TO_ID[+d.id];
+        return id && flat.find(function(x) { return x.id === id; }) ? 1 : 0.3;
+      })
+      .style("cursor", function(d) {
+        var id = NUM_TO_ID[+d.id];
+        return id && flat.find(function(x) { return x.id === id; }) ? "pointer" : "default";
+      })
+      .on("click", function(ev, d) {
+        var id = NUM_TO_ID[+d.id]; if (!id) return;
+        var c = flat.find(function(x) { return x.id === id; });
+        if (c) props.onSelect(c);
+      });
+  }, [geo, props.all]);
+
+  if (!geo) {
+    return (
+      <div style={{height:160,display:"flex",alignItems:"center",justifyContent:"center",color:C.muted,fontSize:12}}>
+        Loading map...
+      </div>
+    );
+  }
+  return <svg ref={svgRef} style={{width:"100%",display:"block",borderRadius:8}} />;
+}
+
+function TravelTracker() {
+  var [all, setAll] = useState(INITIAL);
+  var [continent, setContinent] = useState("europe");
+  var [view, setView] = useState("map");
+  var [selected, setSelected] = useState(null);
+  var [collapsed, setCollapsed] = useState({});
+  var [doneBookings, setDoneBookings] = useState({});
+  var [loaded, setLoaded] = useState(false);
+
+  useEffect(function() {
+    var link = document.createElement("link");
+    link.href = "https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Space+Grotesk:wght@400;500;600&display=swap";
+    link.rel = "stylesheet";
+    document.head.appendChild(link);
+    window.storage.get("grand-tour-v6").then(function(r) {
+      if (r) {
+        try {
+          var d = JSON.parse(r.value);
+          if (d.all) setAll(d.all);
+          if (d.bookings) setDoneBookings(d.bookings);
+        } catch(e) {}
+      }
+      setLoaded(true);
+    }).catch(function() { setLoaded(true); });
+  }, []);
+
+  function save(a, b) {
+    window.storage.set("grand-tour-v6", JSON.stringify({all:a, bookings:b})).catch(function(){});
+  }
+
+  function findCont(id) {
+    return Object.keys(all).find(function(k) { return all[k].some(function(c) { return c.id === id; }); });
+  }
+
+  function toggleCity(cid, name) {
+    var cont = findCont(cid); if (!cont) return;
+    var na = Object.assign({}, all);
+    na[cont] = all[cont].map(function(c) {
+      if (c.id !== cid) return c;
+      return Object.assign({}, c, {cities: c.cities.map(function(ci) {
+        return ci.name === name ? Object.assign({}, ci, {visited: !ci.visited}) : ci;
+      })});
+    });
+    setAll(na); save(na, doneBookings);
+    setSelected(na[cont].find(function(c) { return c.id === cid; }) || null);
+  }
+
+  function cycleStatus(cid) {
+    var cyc = ["toGo","planned","partial","done"];
+    var cont = findCont(cid); if (!cont) return;
+    var na = Object.assign({}, all);
+    na[cont] = all[cont].map(function(c) {
+      if (c.id !== cid) return c;
+      return Object.assign({}, c, {status: cyc[(cyc.indexOf(c.status)+1)%cyc.length]});
+    });
+    setAll(na); save(na, doneBookings);
+    setSelected(na[cont].find(function(c) { return c.id === cid; }) || null);
+  }
+
+  function toggleBooking(key) {
+    var nb = Object.assign({}, doneBookings, {}); nb[key] = !nb[key];
+    setDoneBookings(nb); save(all, nb);
+  }
+
+  function selectCountry(c) {
+    setSelected(function(p) { return p && p.id === c.id ? null : c; });
+  }
+
+  function switchCont(id) { setContinent(id); setSelected(null); }
+
+  function toggleCollapse(s) {
+    setCollapsed(function(p) { return Object.assign({}, p, {[s]: !p[s]}); });
+  }
+
+  var flat = Object.values(all).reduce(function(a, arr) { return a.concat(arr); }, []);
+  var gStats = {done:0, partial:0, planned:0, toGo:0, total:0};
+  flat.forEach(function(c) { gStats[c.status]++; gStats.total++; });
+  var visited = gStats.done + gStats.partial;
+  var pct = Math.round((visited / gStats.total) * 100);
+
+  var cList = all[continent] || [];
+  var grouped = STATUS_ORDER.reduce(function(acc, s) {
+    var items = cList.filter(function(c) { return c.status === s; })
+      .sort(function(a, b) { return a.name.localeCompare(b.name); });
+    if (items.length) acc.push({status:s, items:items});
+    return acc;
+  }, []);
+
+  if (!loaded) {
+    return (
+      <div style={{background:C.bg,minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}>
+        <span style={{color:C.saffron,fontFamily:"Space Grotesk,sans-serif",fontSize:14}}>Loading...</span>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{background:C.bg,minHeight:"100vh",fontFamily:"'Space Grotesk',sans-serif",color:C.text,maxWidth:700,margin:"0 auto",paddingBottom:72}}>
+
+      <div style={{padding:"22px 20px 16px",borderBottom:"1px solid " + C.border}}>
+        <div style={{fontFamily:"'Syne',sans-serif",fontSize:32,fontWeight:800,color:C.saffron,letterSpacing:"-1px",lineHeight:1}}>
+          THE GRAND TOUR
+        </div>
+        <div style={{fontSize:12,color:C.muted,marginTop:5}}>
+          {visited} visited &middot; {gStats.planned} planned &middot; {gStats.toGo} on the list
+        </div>
+        <div style={{marginTop:10,height:2,background:C.border,borderRadius:1,overflow:"hidden"}}>
+          <div style={{height:"100%",width:pct+"%",background:"linear-gradient(90deg,"+C.partial+","+C.saffron+")",transition:"width 0.6s"}} />
+        </div>
+        <div style={{fontSize:10,color:C.dim,marginTop:3}}>{pct}% covered worldwide</div>
+      </div>
+
+      {view === "map" && (
+        <div style={{padding:"14px 16px 0"}}>
+          <WorldMap all={all} onSelect={selectCountry} />
+          <div style={{display:"flex",justifyContent:"center",gap:14,marginTop:8,flexWrap:"wrap"}}>
+            {Object.entries(STATUS_CFG).map(function(e) {
+              return (
+                <div key={e[0]} style={{display:"flex",alignItems:"center",gap:4}}>
+                  <div style={{width:10,height:5,background:e[1].color,borderRadius:1}} />
+                  <span style={{fontSize:10,color:C.muted}}>{e[1].label}</span>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{textAlign:"center",fontSize:10,color:C.dim,marginTop:3,marginBottom:10}}>Tap any country for details</div>
+          {selected && (
+            <div style={{marginBottom:16,background:C.card,borderRadius:8,border:"1px solid "+C.border,borderLeft:"3px solid "+STATUS_CFG[selected.status].color}}>
+              <div style={{padding:"12px 14px"}}>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:selected.cities.length?10:0}}>
+                  <div style={{display:"flex",alignItems:"center",gap:10}}>
+                    <span style={{fontSize:24}}>{selected.flag}</span>
+                    <div>
+                      <div style={{fontFamily:"'Syne',sans-serif",fontWeight:700,fontSize:14}}>{selected.name}</div>
+                      {selected.note && <div style={{fontSize:10,color:C.muted,marginTop:1}}>{selected.note}</div>}
+                    </div>
+                  </div>
+                  <div style={{display:"flex",gap:7,alignItems:"center",flexShrink:0}}>
+                    <button onClick={function(){cycleStatus(selected.id);}}
+                      style={{background:STATUS_CFG[selected.status].bg,border:"1px solid "+STATUS_CFG[selected.status].color+"40",borderRadius:3,color:STATUS_CFG[selected.status].color,fontSize:10,padding:"3px 8px",cursor:"pointer",fontWeight:600,fontFamily:"inherit"}}>
+                      {STATUS_CFG[selected.status].label}
+                    </button>
+                    <button onClick={function(){setSelected(null);}} style={{background:"transparent",border:"none",color:C.muted,cursor:"pointer",fontSize:18,padding:0,lineHeight:1}}>×</button>
+                  </div>
+                </div>
+                {selected.cities.length > 0 && (
+                  <div style={{display:"flex",flexWrap:"wrap",gap:5}}>
+                    {selected.cities.map(function(ci) {
+                      return (
+                        <button key={ci.name} onClick={function(){toggleCity(selected.id,ci.name);}}
+                          style={{padding:"3px 9px",borderRadius:20,fontSize:10,cursor:"pointer",fontFamily:"inherit",fontWeight:ci.visited?500:400,
+                            border:ci.visited?"1px solid "+C.done+"50":ci.planned?"1px solid "+C.planned+"40":"1px solid "+C.border,
+                            background:ci.visited?"rgba(82,196,122,0.12)":ci.planned?"rgba(184,128,240,0.1)":"transparent",
+                            color:ci.visited?C.done:ci.planned?C.planned:C.muted}}>
+                          {ci.visited?"✓ ":""}{ci.name}{ci.planned&&!ci.visited?" ✈":""}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {view === "list" && (
+        <div>
+          <div style={{display:"flex",overflowX:"auto",borderBottom:"1px solid "+C.border,scrollbarWidth:"none"}}>
+            {CONTINENTS.map(function(ct) {
+              var ctL = all[ct.id] || [];
+              var ctV = ctL.filter(function(c){return c.status==="done"||c.status==="partial";}).length;
+              var isA = ct.id === continent;
+              return (
+                <button key={ct.id} onClick={function(){switchCont(ct.id);}}
+                  style={{padding:"8px 12px 6px",whiteSpace:"nowrap",background:"transparent",border:"none",borderBottom:isA?"2px solid "+C.saffron:"2px solid transparent",cursor:"pointer",fontFamily:"inherit"}}>
+                  <div style={{fontFamily:"'Syne',sans-serif",fontSize:10,fontWeight:800,letterSpacing:"0.8px",color:isA?C.saffron:C.muted}}>{ct.label.toUpperCase()}</div>
+                  <div style={{marginTop:3,height:2,background:C.border,borderRadius:1,overflow:"hidden",minWidth:28}}>
+                    <div style={{height:"100%",width:ctL.length?Math.round((ctV/ctL.length)*100)+"%":"0%",background:isA?C.saffron:C.dim}} />
+                  </div>
+                  <div style={{fontSize:9,color:C.dim,marginTop:1,textAlign:"center"}}>{ctV}/{ctL.length}</div>
+                </button>
+              );
+            })}
+          </div>
+
+          <div style={{padding:"12px 16px 0"}}>
+            {grouped.map(function(group) {
+              var s = group.status; var items = group.items;
+              var cfg = STATUS_CFG[s];
+              var isCollapsed = !!collapsed[s];
+              return (
+                <div key={s} style={{marginBottom:20}}>
+                  <button onClick={function(){toggleCollapse(s);}}
+                    style={{display:"flex",alignItems:"center",gap:8,width:"100%",background:"transparent",border:"none",cursor:"pointer",padding:"0 0 8px",borderBottom:"1px solid "+C.border,marginBottom:isCollapsed?0:12,fontFamily:"inherit"}}>
+                    <div style={{width:3,height:14,background:cfg.color,borderRadius:1,flexShrink:0}} />
+                    <span style={{fontFamily:"'Syne',sans-serif",fontSize:10,fontWeight:800,color:cfg.color,letterSpacing:"1.5px"}}>{cfg.label.toUpperCase()}</span>
+                    <span style={{fontSize:10,color:C.dim,flex:1,textAlign:"left"}}>— {items.length}</span>
+                    <span style={{fontSize:11,color:C.dim,transition:"transform 0.2s",transform:isCollapsed?"rotate(-90deg)":"rotate(0deg)"}}>▾</span>
+                  </button>
+
+                  {!isCollapsed && (function() {
+                    var rows = [];
+                    for (var ri = 0; ri < Math.ceil(items.length / 4); ri++) { rows.push(ri); }
+                    return rows.map(function(ri) {
+                      var row = items.slice(ri*4, ri*4+4);
+                      var rowHasSel = selected && row.some(function(c){return c.id===selected.id;});
+                      return (
+                        <div key={ri} style={{marginBottom:rowHasSel?0:8}}>
+                          <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:7}}>
+                            {row.map(function(country) {
+                              var isSel = selected && selected.id === country.id;
+                              var vc = country.cities.filter(function(ci){return ci.visited;}).length;
+                              var tc = country.cities.length;
+                              return (
+                                <button key={country.id} onClick={function(){selectCountry(country);}}
+                                  style={{padding:"11px 4px 9px",borderRadius:6,textAlign:"center",cursor:"pointer",fontFamily:"inherit",
+                                    border:"1px solid "+(isSel?cfg.color+"90":cfg.color+"18"),
+                                    borderBottom:isSel?"2px solid "+cfg.color:"1px solid "+cfg.color+"18",
+                                    background:isSel?cfg.color+"18":cfg.bg,outline:"none",transition:"all 0.12s"}}>
+                                  <div style={{fontSize:26,lineHeight:1}}>{country.flag}</div>
+                                  <div style={{fontSize:9,color:isSel?cfg.color:C.muted,marginTop:4,lineHeight:1.3,fontWeight:isSel?600:400,wordBreak:"break-word"}}>{country.name}</div>
+                                  {tc>0 && <div style={{fontSize:8,color:C.dim,marginTop:2}}>{vc}/{tc}</div>}
+                                </button>
+                              );
+                            })}
+                            {row.length < 4 && (function(){
+                              var e = []; for (var i=0;i<4-row.length;i++) e.push(i);
+                              return e.map(function(i){return <div key={i}/>;});
+                            })()}
+                          </div>
+                          {rowHasSel && selected && (
+                            <div style={{background:C.card,borderRadius:"0 0 8px 8px",border:"1px solid "+C.border,borderTopWidth:2,borderTopColor:STATUS_CFG[selected.status].color,overflow:"hidden",marginBottom:8}}>
+                              <div style={{padding:"11px 13px"}}>
+                                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:selected.cities.length?9:0}}>
+                                  <div style={{display:"flex",alignItems:"center",gap:8}}>
+                                    <span style={{fontSize:20}}>{selected.flag}</span>
+                                    <div>
+                                      <div style={{fontFamily:"'Syne',sans-serif",fontWeight:700,fontSize:13,color:C.text}}>{selected.name}</div>
+                                      {selected.note && <div style={{fontSize:10,color:C.muted,marginTop:1}}>{selected.note}</div>}
+                                      {selected.cities.length>0 && <div style={{fontSize:9,color:C.dim,marginTop:1}}>{selected.cities.filter(function(c){return c.visited;}).length}/{selected.cities.length} locations</div>}
+                                    </div>
+                                  </div>
+                                  <div style={{display:"flex",gap:6,alignItems:"center",flexShrink:0}}>
+                                    <button onClick={function(){cycleStatus(selected.id);}}
+                                      style={{background:STATUS_CFG[selected.status].bg,border:"1px solid "+STATUS_CFG[selected.status].color+"40",borderRadius:3,color:STATUS_CFG[selected.status].color,fontSize:10,padding:"3px 7px",cursor:"pointer",fontWeight:600,fontFamily:"inherit"}}>
+                                      {STATUS_CFG[selected.status].label}
+                                    </button>
+                                    <button onClick={function(){setSelected(null);}} style={{background:"transparent",border:"none",color:C.muted,cursor:"pointer",fontSize:17,padding:0,lineHeight:1}}>×</button>
+                                  </div>
+                                </div>
+                                {selected.cities.length>0 && (
+                                  <div style={{display:"flex",flexWrap:"wrap",gap:5}}>
+                                    {selected.cities.map(function(ci){
+                                      return (
+                                        <button key={ci.name} onClick={function(){toggleCity(selected.id,ci.name);}}
+                                          style={{padding:"3px 8px",borderRadius:20,fontSize:10,cursor:"pointer",fontFamily:"inherit",fontWeight:ci.visited?500:400,
+                                            border:ci.visited?"1px solid "+C.done+"50":ci.planned?"1px solid "+C.planned+"40":"1px solid "+C.border,
+                                            background:ci.visited?"rgba(82,196,122,0.12)":ci.planned?"rgba(184,128,240,0.1)":"transparent",
+                                            color:ci.visited?C.done:ci.planned?C.planned:C.muted}}>
+                                          {ci.visited?"✓ ":""}{ci.name}{ci.planned&&!ci.visited?" ✈":""}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {view === "trips" && (
+        <div style={{padding:"16px"}}>
+          <div style={{fontFamily:"'Syne',sans-serif",fontSize:10,fontWeight:800,color:C.muted,letterSpacing:"1.5px",marginBottom:14}}>PIPELINE</div>
+          {TRIPS.map(function(trip) {
+            var ts = TRIP_CFG[trip.tripStatus] || TRIP_CFG.confirmed;
+            return (
+              <div key={trip.id} style={{background:C.card,borderRadius:8,border:"1px solid "+C.border,borderLeft:"3px solid "+ts.color,marginBottom:10}}>
+                <div style={{padding:"14px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
+                  <div style={{fontFamily:"'Syne',sans-serif",fontWeight:800,fontSize:15,color:C.text}}>{trip.flags} {trip.title}</div>
+                  <div style={{background:ts.bg,border:"1px solid "+ts.color+"40",borderRadius:3,color:ts.color,fontSize:9,padding:"3px 7px",fontWeight:700,letterSpacing:"0.8px",fontFamily:"'Syne',sans-serif",whiteSpace:"nowrap",flexShrink:0}}>{ts.label}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {view === "stats" && (
+        <div style={{padding:"16px"}}>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:12}}>
+            {[[visited,C.saffron,"visited"],[gStats.planned,C.planned,"planned"],[gStats.toGo,C.toGo,"on list"]].map(function(row,i) {
+              return (
+                <div key={i} style={{background:C.card,borderRadius:8,border:"1px solid "+C.border,padding:"14px 12px",textAlign:"center"}}>
+                  <div style={{fontFamily:"'Syne',sans-serif",fontSize:36,fontWeight:800,color:row[1],lineHeight:1}}>{row[0]}</div>
+                  <div style={{fontSize:10,color:C.muted,marginTop:4}}>{row[2]}</div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div style={{background:C.card,borderRadius:8,border:"1px solid "+C.border,padding:"12px 14px",marginBottom:12}}>
+            <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
+              <span style={{fontFamily:"'Syne',sans-serif",fontSize:10,fontWeight:800,color:C.muted,letterSpacing:"1px"}}>GLOBAL COVERAGE</span>
+              <span style={{fontSize:10,color:C.saffron,fontWeight:600}}>{pct}%</span>
+            </div>
+            <div style={{height:10,borderRadius:5,overflow:"hidden",background:C.border,display:"flex"}}>
+              {STATUS_ORDER.map(function(s) {
+                var w = (gStats[s] / gStats.total) * 100;
+                return w ? <div key={s} style={{width:w+"%",background:STATUS_CFG[s].color,height:"100%"}} /> : null;
+              })}
+            </div>
+          </div>
+
+          <div style={{fontFamily:"'Syne',sans-serif",fontSize:10,fontWeight:800,color:C.muted,letterSpacing:"1.5px",marginBottom:10}}>BY CONTINENT</div>
+          {CONTINENTS.map(function(ct) {
+            var ctList = all[ct.id] || [];
+            var total = ctList.length; if (!total) return null;
+            var counts = {done:0,partial:0,planned:0,toGo:0};
+            ctList.forEach(function(c){counts[c.status]++;});
+            var vis = counts.done + counts.partial;
+            return (
+              <div key={ct.id} style={{background:C.card,borderRadius:8,border:"1px solid "+C.border,padding:"11px 13px",marginBottom:7}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:7}}>
+                  <span style={{fontFamily:"'Syne',sans-serif",fontSize:12,fontWeight:700,color:C.text}}>{ct.label}</span>
+                  <span style={{fontSize:10,color:C.muted}}>{vis}/{total}</span>
+                </div>
+                <div style={{height:12,borderRadius:6,overflow:"hidden",display:"flex",background:C.border}}>
+                  {STATUS_ORDER.map(function(s) {
+                    var w = (counts[s]/total)*100;
+                    return w ? <div key={s} style={{width:w+"%",background:STATUS_CFG[s].color,height:"100%"}} /> : null;
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {view === "stamps" && (
+        <div style={{padding:"16px"}}>
+          <div style={{background:"#f0e8d0",borderRadius:12,padding:"18px 14px",border:"1px solid "+C.border}}>
+            <div style={{textAlign:"center",marginBottom:18}}>
+              <div style={{fontFamily:"'Syne',sans-serif",fontSize:11,fontWeight:800,color:"#8a7a68",letterSpacing:"2px"}}>TRAVEL STAMPS</div>
+              <div style={{fontSize:10,color:"#a89880",marginTop:2}}>{visited} countries collected</div>
+            </div>
+            {CONTINENTS.map(function(ct) {
+              var ctV = (all[ct.id]||[]).filter(function(c){return c.status==="done"||c.status==="partial";});
+              if (!ctV.length) return null;
+              var col = STAMP_COLORS[ct.id];
+              return (
+                <div key={ct.id} style={{marginBottom:20}}>
+                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+                    <div style={{flex:1,height:1,background:"#d4c8b0"}} />
+                    <span style={{fontSize:9,fontWeight:700,color:"#a89880",letterSpacing:"1.5px",whiteSpace:"nowrap"}}>{ct.label.toUpperCase()}</span>
+                    <div style={{flex:1,height:1,background:"#d4c8b0"}} />
+                  </div>
+                  <div style={{display:"flex",flexWrap:"wrap",gap:8,justifyContent:"center"}}>
+                    {ctV.map(function(country) {
+                      var rot = ((country.id.charCodeAt(0)+country.id.charCodeAt(1))%7)-3;
+                      return (
+                        <div key={country.id}
+                          onClick={function(){switchCont(ct.id);setSelected(country);setView("list");}}
+                          style={{display:"flex",flexDirection:"column",alignItems:"center",padding:"8px 8px 6px",border:"2px dashed "+col,borderRadius:4,transform:"rotate("+rot+"deg)",background:col+"10",minWidth:54,maxWidth:66,cursor:"pointer",position:"relative"}}>
+                          <div style={{fontSize:20,lineHeight:1}}>{country.flag}</div>
+                          <div style={{fontSize:8,color:col,marginTop:3,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.5px",textAlign:"center",lineHeight:1.3,wordBreak:"break-word"}}>{country.name}</div>
+                          {country.status==="partial" && (
+                            <div style={{position:"absolute",top:2,right:2,width:5,height:5,borderRadius:"50%",background:C.partial,border:"1px solid #f0e8d0"}} />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+            <div style={{textAlign:"center",marginTop:6,fontSize:9,color:"#b8a898"}}>orange dot = partial · tap to jump to country</div>
+          </div>
+        </div>
+      )}
+
+      <div style={{position:"fixed",bottom:0,left:0,right:0,background:"#091a17",borderTop:"1px solid "+C.border,zIndex:100}}>
+        <div style={{display:"flex",maxWidth:700,margin:"0 auto"}}>
+          {NAV.map(function(item) {
+            var isActive = view === item.id;
+            return (
+              <button key={item.id} onClick={function(){setView(item.id);setSelected(null);}}
+                style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:3,padding:"10px 4px 12px",background:"transparent",border:"none",cursor:"pointer",fontFamily:"inherit",borderTop:isActive?"2px solid "+C.saffron:"2px solid transparent",transition:"all 0.15s"}}>
+                <span style={{fontSize:14,lineHeight:1,opacity:isActive?1:0.5}}>{item.icon}</span>
+                <span style={{fontFamily:"'Syne',sans-serif",fontSize:9,fontWeight:800,letterSpacing:"0.8px",color:isActive?C.saffron:C.dim}}>{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(TravelTracker));
+</script>
+</body>
+</html>
