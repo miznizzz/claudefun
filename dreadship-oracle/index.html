@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dreadship Oracle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{--ui-bg:#08091a;--ui-mid:#0c0e22;--ui-rule:#161828;--ui-dim:#364070;--ui-dimmer:#202438;--ui-accent:#5568c8;--ui-text:#c0c8e8;--ui-muted:#485088;--td:1.1s;}
+html{background:var(--ui-bg);}
+body{background:var(--ui-bg);color:var(--ui-text);font-family:'IBM Plex Mono',monospace;min-height:100vh;overflow-x:hidden;transition:background var(--td) ease,color var(--td) ease;}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");opacity:0.028;pointer-events:none;z-index:100;}
+.theme-midnight{--ui-bg:#08091a;--ui-mid:#0c0e22;--ui-rule:#161828;--ui-dim:#364070;--ui-dimmer:#202438;--ui-accent:#5568c8;--ui-text:#c0c8e8;--ui-muted:#485088;}
+.theme-oxblood{--ui-bg:#130606;--ui-mid:#190a0a;--ui-rule:#241010;--ui-dim:#582828;--ui-dimmer:#341414;--ui-accent:#a83838;--ui-text:#e0c4c4;--ui-muted:#784040;}
+.theme-forest{--ui-bg:#060d08;--ui-mid:#091208;--ui-rule:#101c12;--ui-dim:#2c4432;--ui-dimmer:#16281a;--ui-accent:#387048;--ui-text:#bcd4c0;--ui-muted:#3c6048;}
+.theme-slate{--ui-bg:#0b0b0e;--ui-mid:#0f0f12;--ui-rule:#1a1a20;--ui-dim:#3c3c48;--ui-dimmer:#242430;--ui-accent:#787890;--ui-text:#ccccd8;--ui-muted:#545468;}
+.shell{max-width:940px;margin:0 auto;}
+.header{border-bottom:1px solid var(--ui-rule);padding:2rem 2.5rem 1.5rem;display:grid;grid-template-columns:1fr auto 1fr;align-items:end;gap:1rem;transition:border-color var(--td) ease;}
+.header-left{display:flex;flex-direction:column;gap:4px;}
+.header-label{font-size:8px;letter-spacing:.35em;text-transform:uppercase;color:var(--ui-muted);font-weight:300;transition:color var(--td) ease;}
+.header-session{font-size:11px;letter-spacing:.2em;color:var(--ui-dim);font-style:italic;transition:color var(--td) ease;}
+.header-center{text-align:center;}
+.masthead-title{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:.6em;color:var(--ui-accent);text-transform:uppercase;line-height:1;transition:color var(--td) ease;}
+.masthead-vr{width:1px;height:22px;background:var(--ui-rule);margin:8px auto 4px;transition:background var(--td) ease;}
+.masthead-sub{font-size:7.5px;letter-spacing:.4em;color:var(--ui-muted);text-transform:uppercase;transition:color var(--td) ease;}
+.header-right{display:flex;justify-content:flex-end;align-items:flex-end;gap:6px;}
+.filter-btn{background:transparent;border:1px solid var(--ui-rule);color:var(--ui-muted);padding:4px 10px;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;transition:all .15s;}
+.filter-btn:hover{border-color:var(--ui-dim);color:var(--ui-text);}
+.filter-btn.on{border-color:var(--ui-accent);color:var(--ui-accent);}
+.coord-bar{border-bottom:1px solid var(--ui-rule);padding:.55rem 2.5rem;display:flex;justify-content:space-between;align-items:center;transition:border-color var(--td) ease;}
+.coord-text{font-size:8px;letter-spacing:.15em;color:var(--ui-dimmer);font-style:italic;transition:color var(--td) ease,opacity .3s;}
+.coord-text.ticking{opacity:.3;}
+.stage{padding:2.5rem 2.5rem 2rem;min-height:560px;display:flex;flex-direction:column;}
+.card-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;flex:1;}
+.empty-state{grid-column:1/-1;display:flex;align-items:center;justify-content:center;min-height:460px;flex-direction:column;gap:1.5rem;}
+.empty-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(54px,9vw,92px);letter-spacing:.08em;color:var(--ui-rule);line-height:.94;text-align:center;transition:color var(--td) ease;}
+.empty-sub{font-size:8px;letter-spacing:.3em;color:var(--ui-dimmer);text-transform:uppercase;transition:color var(--td) ease;}
+.card-scene{perspective:1200px;aspect-ratio:2/3.5;}
+.card-flipper{width:100%;height:100%;transform-style:preserve-3d;transition:transform .95s cubic-bezier(.22,.1,.1,1);position:relative;}
+.card-scene.flipped .card-flipper{transform:rotateY(180deg);}
+.card-back,.card-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:3px;overflow:hidden;}
+.card-back{background:var(--ui-mid);border:1px solid var(--ui-rule);transition:background var(--td) ease,border-color var(--td) ease;}
+.card-back svg{position:absolute;inset:0;width:100%;height:100%;}
+.card-back-footer{position:absolute;bottom:0;left:0;right:0;padding:7px 11px;border-top:1px solid var(--ui-rule);display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,.55);transition:border-color var(--td) ease;}
+.card-back-id{font-size:7px;letter-spacing:.2em;color:var(--ui-dimmer);transition:color var(--td) ease;}
+.card-back-mark{font-family:'Bebas Neue',sans-serif;font-size:9px;letter-spacing:.4em;color:var(--ui-dimmer);transition:color var(--td) ease;}
+.card-face{transform:rotateY(180deg);display:flex;flex-direction:column;border:none;}
+.card-face::after{content:'';position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 150 150' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");opacity:.055;pointer-events:none;mix-blend-mode:overlay;z-index:2;}
+.card-top-bar{padding:9px 13px 7px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;justify-content:space-between;align-items:baseline;position:relative;z-index:3;}
+.card-mode-letter{font-family:'IBM Plex Mono',monospace;font-size:7px;letter-spacing:.3em;text-transform:uppercase;}
+.card-catalogue{font-family:'IBM Plex Mono',monospace;font-size:7px;letter-spacing:.15em;opacity:.3;}
+.card-title-block{padding:.85rem 13px .6rem;flex-shrink:0;position:relative;z-index:3;}
+.card-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(19px,3.6vw,27px);letter-spacing:.05em;line-height:.95;text-transform:uppercase;word-break:break-word;hyphens:auto;}
+.card-rule{height:1px;background:rgba(255,255,255,.07);margin:0 13px;}
+.card-prompt-wrap{flex:1;padding:.7rem 13px;display:flex;align-items:center;position:relative;z-index:3;}
+.card-prompt{font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-style:italic;font-weight:300;line-height:1.8;letter-spacing:.01em;}
+.card-prompt em{font-style:normal;font-weight:400;border-bottom:1px solid rgba(255,255,255,.38);}
+.card-bottom-bar{padding:7px 13px 9px;border-top:1px solid rgba(255,255,255,.07);display:flex;justify-content:space-between;align-items:center;position:relative;z-index:3;}
+.card-numeral{font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:.3em;opacity:.28;}
+.card-degree{font-size:7px;letter-spacing:.1em;opacity:.25;}
+/* DESCENT — indigos, slates, bruised purples */
+.fd0{background:#1a1535;color:#d4d0f0;} .fd0 .card-mode-letter{color:#9088d8;}
+.fd1{background:#141a38;color:#ccd4f0;} .fd1 .card-mode-letter{color:#7088c8;}
+.fd2{background:#1e1232;color:#d8cce8;} .fd2 .card-mode-letter{color:#a878c8;}
+.fd3{background:#101828;color:#c8d4e8;} .fd3 .card-mode-letter{color:#5880b8;}
+.fd4{background:#1a1430;color:#d0cce4;} .fd4 .card-mode-letter{color:#8878c0;}
+.fd5{background:#0e1a30;color:#c4d0e8;} .fd5 .card-mode-letter{color:#4878b8;}
+.fd6{background:#201030;color:#dcc8e4;} .fd6 .card-mode-letter{color:#b868b8;}
+.fd7{background:#121428;color:#ccd0e0;} .fd7 .card-mode-letter{color:#6070a8;}
+/* CLAIM — ambers, rusts, terracottas */
+.fc0{background:#2a1408;color:#f0d8c0;} .fc0 .card-mode-letter{color:#d87040;}
+.fc1{background:#281010;color:#f0d0c0;} .fc1 .card-mode-letter{color:#d05040;}
+.fc2{background:#241808;color:#ecd8b0;} .fc2 .card-mode-letter{color:#c87830;}
+.fc3{background:#2a1a08;color:#f0dca8;} .fc3 .card-mode-letter{color:#d09030;}
+.fc4{background:#201408;color:#e8d0b8;} .fc4 .card-mode-letter{color:#c06830;}
+.fc5{background:#261010;color:#eed0b8;} .fc5 .card-mode-letter{color:#c84838;}
+.fc6{background:#2a1808;color:#f0d4a0;} .fc6 .card-mode-letter{color:#d08828;}
+.fc7{background:#221208;color:#ecd8bc;} .fc7 .card-mode-letter{color:#c05830;}
+/* BOTH — verdigris, dusty rose, liminal */
+.fb0{background:#0e1e18;color:#c8e0d4;} .fb0 .card-mode-letter{color:#48a878;}
+.fb1{background:#1e1018;color:#e0c8d0;} .fb1 .card-mode-letter{color:#a84878;}
+.fb2{background:#141e14;color:#c8e0c8;} .fb2 .card-mode-letter{color:#589858;}
+.fb3{background:#1a1418;color:#dcc8d4;} .fb3 .card-mode-letter{color:#987090;}
+.fb4{background:#0e1c1c;color:#c8dede;} .fb4 .card-mode-letter{color:#389898;}
+.fb5{background:#1c1014;color:#e0ccd4;} .fb5 .card-mode-letter{color:#b06880;}
+.fb6{background:#161e12;color:#d0e0c8;} .fb6 .card-mode-letter{color:#6a9850;}
+.fb7{background:#181418;color:#d8ccd8;} .fb7 .card-mode-letter{color:#907090;}
+.bottom-strip{border-top:1px solid var(--ui-rule);padding:1.5rem 2.5rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;transition:border-color var(--td) ease;}
+.draw-btn{background:var(--ui-text);color:var(--ui-bg);border:none;padding:.7rem 2.2rem;font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:.5em;text-transform:uppercase;cursor:pointer;transition:opacity .2s,transform .1s,background var(--td) ease,color var(--td) ease;flex-shrink:0;border-radius:2px;}
+.draw-btn:hover{opacity:.8;}
+.draw-btn:active{transform:scale(.98);}
+.draw-label{font-size:8px;letter-spacing:.25em;color:var(--ui-dimmer);text-transform:uppercase;transition:color var(--td) ease;}
+.after-bar{border-top:1px solid var(--ui-rule);padding:1.5rem 2.5rem;display:none;transition:border-color var(--td) ease;}
+.after-bar.on{display:block;}
+.after-label{font-size:7.5px;letter-spacing:.35em;text-transform:uppercase;color:var(--ui-dimmer);margin-bottom:1rem;transition:color var(--td) ease;}
+.after-btns{display:flex;flex-wrap:wrap;gap:8px;}
+.after-btn{background:transparent;border:1px solid var(--ui-rule);color:var(--ui-dim);padding:6px 16px;font-family:'IBM Plex Mono',monospace;font-size:9px;font-style:italic;font-weight:300;cursor:pointer;transition:border-color .2s,color .2s;}
+.after-btn:hover{border-color:var(--ui-accent);color:var(--ui-accent);}
+.fourth-wrap{margin-top:2rem;max-width:265px;display:none;}
+.fourth-wrap.on{display:block;}
+.fourth-label-sm{font-size:7px;letter-spacing:.3em;text-transform:uppercase;color:var(--ui-dimmer);margin-bottom:1rem;transition:color var(--td) ease;}
+@media(max-width:640px){.card-grid{grid-template-columns:1fr;}.header{grid-template-columns:1fr;text-align:center;}.header-right{justify-content:center;}.coord-bar{flex-direction:column;gap:4px;}}
+</style>
+</head>
+<body class="theme-midnight">
+<div class="shell">
+  <div class="header">
+    <div class="header-left">
+      <span class="header-label">Personal Oracle</span>
+      <span class="header-session" id="stag">—</span>
+    </div>
+    <div class="header-center">
+      <div class="masthead-title">Dreadship</div>
+      <div class="masthead-vr"></div>
+      <div class="masthead-sub">Oracle · Myra</div>
+    </div>
+    <div class="header-right">
+      <button class="filter-btn on" id="fa" onclick="sf('all')">All</button>
+      <button class="filter-btn" id="fd" onclick="sf('descent')">D</button>
+      <button class="filter-btn" id="fc" onclick="sf('claim')">C</button>
+    </div>
+  </div>
+  <div class="coord-bar">
+    <span class="coord-text" id="coord-left">RA —h —m —s</span>
+    <span class="coord-text" id="coord-right">DEC ——° ——′ ——″</span>
+  </div>
+  <div class="stage">
+    <div class="card-grid" id="card-grid">
+      <div class="empty-state">
+        <div class="empty-title">THE<br>ORACLE<br>WAITS</div>
+        <div class="empty-sub">Draw your cards</div>
+      </div>
+    </div>
+  </div>
+  <div class="bottom-strip">
+    <span class="draw-label">Three cards · One reading</span>
+    <button class="draw-btn" onclick="draw()">Draw</button>
+  </div>
+  <div class="after-bar" id="abar">
+    <div class="after-label">After the reading</div>
+    <div class="after-btns">
+      <button class="after-btn" onclick="fourth('stuck')">I got stuck on one</button>
+      <button class="after-btn" onclick="fourth('avoid')">I avoided something</button>
+      <button class="after-btn" onclick="fourth('landed')">one really landed</button>
+      <button class="after-btn" onclick="fourth('more')">draw a fourth</button>
+    </div>
+    <div class="fourth-wrap" id="fourth-wrap">
+      <div class="fourth-label-sm">— IV —</div>
+      <div id="fourth-slot"></div>
+    </div>
+  </div>
+</div>
+<script>
+const P=[
+{title:"The Performer",t:"What version of yourself are you performing right now — and who is the audience you're still trying to impress?",m:"descent",cat:"NGC 4889",deg:"17° 42′ 08″"},
+{title:"The Repeating Arc",t:"What loop are you running this week that has a different actor but the same script as three years ago?",m:"descent",cat:"HIP 011767",deg:"89° 15′ 51″"},
+{title:"The Body Knows",t:"What emotion are you intellectualising right now instead of sitting in? Give it a texture, a temperature, a location in the body.",m:"descent",cat:"HIP 070890",deg:"14° 29′ 43″"},
+{title:"The Unpaid Tax",t:"What do you believe you have to earn before you're allowed to rest? Where did that tax rate come from?",m:"descent",cat:"NGC 1952",deg:"22° 00′ 52″"},
+{title:"The Watched Self",t:"What is the gap between who you are when no one is watching and who you are when someone is? What does that gap cost you?",m:"descent",cat:"NGC 3031",deg:"69° 03′ 55″"},
+{title:"The False Patience",t:"What are you being patient about that you've actually just decided to stop fighting for? Name the difference.",m:"descent",cat:"NGC 0598",deg:"30° 39′ 37″"},
+{title:"The Tolerated Thing",t:"What are you tolerating that would horrify the version of you from five years ago? Have you made peace with it or just stopped noticing?",m:"descent",cat:"NGC 4594",deg:"11° 37′ 23″"},
+{title:"The Held Identity",t:"What identity are you clinging to because releasing it would mean admitting how much has changed?",m:"descent",cat:"NGC 5457",deg:"54° 20′ 57″"},
+{title:"The Hidden Goal",t:"What have you been optimising for that isn't actually what you want? When did the optimisation become the goal?",m:"descent",cat:"NGC 4486",deg:"12° 23′ 28″"},
+{title:"The False Mastery",t:"Where are you performing capability to avoid the vulnerability of being a beginner at something that matters to you?",m:"descent",cat:"NGC 2264",deg:"09° 53′ 33″"},
+{title:"The Unfinished Grief",t:"What grief haven't you let yourself finish? Not because you can't — because finishing it makes the loss real.",m:"descent",cat:"NGC 7293",deg:"20° 47′ 57″"},
+{title:"The Historical Bond",t:"Which relationship in your life is held together by who you were rather than who you are? Is that a problem?",m:"descent",cat:"NGC 3372",deg:"59° 52′ 04″"},
+{title:"The Forbidden Room",t:"What part of yourself do you find difficult to introduce in professional contexts? Why does that room feel off-limits?",m:"descent",cat:"NGC 0869",deg:"57° 08′ 44″"},
+{title:"The Hidden Capable",t:"Where does the capable, competent version of you hide when things feel uncertain? What would it take to keep her in the room?",m:"descent",cat:"NGC 1316",deg:"37° 12′ 30″"},
+{title:"The Managed Wound",t:"What discomfort are you managing so carefully you've never actually moved through it?",m:"descent",cat:"HIP 043587",deg:"28° 45′ 35″"},
+{title:"The Historical Loyalty",t:"What are you loyal to out of history rather than out of love?",m:"descent",cat:"HIP 036208",deg:"50° 31′ 03″"},
+{title:"The Self-Built Ceiling",t:"Name the ceiling you've installed above yourself. Be honest about who built it and why you're still maintaining it.",m:"descent",cat:"NGC 7000",deg:"44° 20′ 02″"},
+{title:"The Honest Map",t:"Where are you the most honest? Where are you the least? What lives in the gap?",m:"descent",cat:"NGC 0104",deg:"72° 04′ 53″"},
+{title:"The Wrong Room",t:"You walked into a room and immediately became someone slightly different. Which room? Who did you become? Do you remember choosing it?",m:"descent",cat:"NGC 1277",deg:"41° 34′ 28″"},
+{title:"The Correct Amount",t:"You have been told, in ways both spoken and not, what the correct amount of you is. What was that amount? What happens when you exceed it?",m:"descent",cat:"NGC 5194",deg:"47° 11′ 43″"},
+{title:"The Soft No",t:"What are you saying yes to with your mouth that your body has been saying no to for months?",m:"descent",cat:"NGC 6543",deg:"66° 38′ 02″"},
+{title:"The Named Thing",t:"Give the feeling you've been carrying this week an actual name. Not a diagnosis — a name. What does it need from you now that it has one?",m:"descent",cat:"NGC 3242",deg:"18° 38′ 32″"},
+{title:"The Controlled Burn",t:"What in your life has needed to end for so long that you've started maintaining it just to feel something? What would you let go of if you weren't afraid of the quiet after?",m:"descent",cat:"NGC 2244",deg:"04° 52′ 17″"},
+{title:"The Recurring Dream",t:"What keeps coming back? Not the literal dream — the feeling underneath it. The scenario that replays. The thing that won't be filed.",m:"descent",cat:"NGC 7331",deg:"34° 24′ 57″"},
+{title:"The Animal Instinct",t:"Before the thought, before the reason, before the justification — your body had a reaction to something this week. What was it? What did you do with it instead?",m:"descent",cat:"NGC 4038",deg:"18° 52′ 02″"},
+{title:"The Unmasked Desire",t:"Name the thing you want so badly you've dressed it up as something more reasonable to say out loud. Say the original thing. No costume.",m:"claim",cat:"HIP 037279",deg:"05° 14′ 32″"},
+{title:"The Future Speaking",t:"Speak as the future self who already has the thing. Not aspirationally — <em>descriptively</em>. What's actually different?",m:"claim",cat:"NGC 5128",deg:"43° 01′ 09″"},
+{title:"The Excess",t:"Claim the version of your life that makes people slightly uncomfortable. The one that's a little <em>too much</em>.",m:"claim",cat:"HIP 027989",deg:"07° 24′ 05″"},
+{title:"The Tuesday Life",t:"What does the life you actually want look like on a Tuesday at 4pm? Get specific. Get <em>embarrassingly</em> specific.",m:"claim",cat:"HIP 091262",deg:"38° 47′ 01″"},
+{title:"The Unspoken Name",t:"Name one thing you want to be known for that you have not told a single living person. Say it here first.",m:"claim",cat:"HIP 099240",deg:"69° 39′ 40″"},
+{title:"The Arriving",t:"You are not behind. You are not late. Say this until it stops feeling like a lie — then write what becomes possible.",m:"claim",cat:"HIP 014576",deg:"60° 43′ 00″"},
+{title:"The Unwitnessed Claim",t:"What would you claim about yourself if you didn't need it to be witnessed or validated by anyone?",m:"claim",cat:"HIP 080331",deg:"45° 26′ 33″"},
+{title:"The Boring Failure",t:"Describe the life you'd build if failure was boring instead of catastrophic. What changes?",m:"claim",cat:"HIP 057632",deg:"20° 31′ 46″"},
+{title:"The Already Done",t:"What are you already doing that a year ago you'd have called impossible? Own it properly. Don't minimise.",m:"claim",cat:"HIP 069673",deg:"19° 51′ 20″"},
+{title:"The Unqualified Want",t:"Speak one desire into existence without apologising for its size, its selfishness, or its timing.",m:"claim",cat:"HIP 032349",deg:"16° 59′ 30″"},
+{title:"The Already Becoming",t:"What would you do this year if you believed, really believed, that you were already the person you're trying to become?",m:"claim",cat:"NGC 6720",deg:"33° 01′ 45″"},
+{title:"The Body of Abundance",t:"What does abundance actually feel like in your body? Not as concept — as sensation. Practice being in it for thirty seconds.",m:"claim",cat:"HIP 097649",deg:"08° 52′ 06″"},
+{title:"The Sovereign Life",t:"Stop finishing other people's sentences in your head. Stop pre-apologising for the space you take up. What do you actually want to say?",m:"claim",cat:"HIP 102098",deg:"57° 09′ 03″"},
+{title:"The Occupied Throne",t:"Claim the seat at the table you've been standing beside. Not when you're ready. Not when you're qualified. Now. What changes in how you move through the room?",m:"claim",cat:"HIP 113368",deg:"29° 37′ 20″"},
+{title:"The Unborn Self",t:"Where in your body do you carry the version of yourself you haven't become yet? What does it want from you?",m:"both",cat:"NGC 0224",deg:"41° 16′ 09″"},
+{title:"The Unsent Letter",t:"Say the thing you've been composing for six months but not sending. To whoever. Right now. Unedited.",m:"both",cat:"HIP 049669",deg:"11° 58′ 02″"},
+{title:"The Missing Permission",t:"What are you waiting for permission to become? Who was supposed to give it?",m:"both",cat:"HIP 024608",deg:"89° 15′ 51″"},
+{title:"The Honest Mirror",t:"Describe yourself the way someone who loves you and is also completely unimpressed by your excuses would.",m:"both",cat:"HIP 117352",deg:"77° 03′ 56″"},
+{title:"The Rewritten Story",t:"There's a version of your story you keep telling that keeps you small. Rewrite the same events with a different narrator.",m:"both",cat:"NGC 2392",deg:"20° 54′ 43″"},
+{title:"The Inheritance",t:"What did the women before you not get to want? Is any of what you want actually yours, or are you wanting it on their behalf?",m:"both",cat:"HIP 086228",deg:"04° 52′ 17″"},
+{title:"The Unlived Season",t:"There is a version of your life you quietly buried around age nineteen or twenty-three or twenty-seven. What was it? What would you have had to give up to live it?",m:"both",cat:"HIP 053910",deg:"23° 07′ 28″"},
+{title:"The Other Frequency",t:"There is something you know that you do not know how you know. Where does it live? What is it telling you right now that you're not ready to act on?",m:"both",cat:"HIP 062956",deg:"52° 45′ 17″"},
+{title:"The Translation Error",t:"There is something true about you that you have never successfully explained to another person. Not because they wouldn't understand — because you keep softening it. Say the unsoftened version here.",m:"both",cat:"HIP 044127",deg:"09° 53′ 33″"},
+{title:"The First Draft",t:"You are not the edited version. You are not the version that learned to be palatable. Write one true sentence about who you were before you got good at being acceptable.",m:"both",cat:"NGC 0891",deg:"42° 21′ 04″"},
+{title:"The Debt Collector",t:"Who do you owe yourself an apology? Not anyone else — yourself. Say it properly.",m:"both",cat:"HIP 078820",deg:"38° 47′ 29″"},
+// RELATIONSHIP & INTIMACY
+{title:"The Ask",t:"What do you want from the people closest to you that you have never directly asked for? Say it without framing it as a need, without softening it into a preference. What do you actually want?",m:"descent",cat:"NGC 4552",deg:"12° 33′ 22″"},
+{title:"The Kept Distance",t:"You love someone and also keep a specific distance from them. Name the distance. Name why it's there. Is it protecting you or is it protecting an idea of you?",m:"descent",cat:"HIP 058910",deg:"15° 12′ 07″"},
+{title:"The Visitor",t:"Think of the last time you felt truly seen by another person. What did they see? Why don't you let people see that more often?",m:"both",cat:"NGC 4621",deg:"11° 38′ 48″"},
+{title:"The Terms",t:"What are the actual terms on which you let people close to you? Not the ones you tell yourself — the ones they would describe. Are those the terms you meant to set?",m:"descent",cat:"HIP 072105",deg:"31° 53′ 14″"},
+{title:"The Love You Can Take",t:"What kind of love are you able to receive without immediately trying to return it, discount it, or earn it retroactively? What does that say?",m:"both",cat:"NGC 4649",deg:"11° 33′ 01″"},
+{title:"The Imagined Intimacy",t:"There is a version of closeness with someone that you have entirely constructed in your head and never tested against reality. What are you getting from the imagined version that you're afraid the real version won't give you?",m:"descent",cat:"HIP 081693",deg:"14° 02′ 32″"},
+{title:"The Right Kind of Alone",t:"When you are alone versus when you are lonely — what's the actual difference in your body? Which are you in more often than you admit?",m:"descent",cat:"NGC 5866",deg:"55° 45′ 47″"},
+// MONEY, AMBITION, STATUS
+{title:"The Number",t:"There is a number — money, title, position, recognition — that you have decided would mean you made it. You've never said it out loud. Say it. Then ask: made it to whom?",m:"claim",cat:"NGC 1068",deg:"00° 00′ 47″"},
+{title:"The Class Act",t:"How does where you came from still live inside how you relate to money? Not theoretically — in a specific behaviour you did this month.",m:"descent",cat:"HIP 028360",deg:"08° 54′ 23″"},
+{title:"The Undersell",t:"You have been charging less than you're worth, asking for less than you need, or accepting less than you've earned. What story makes that feel safer than the alternative?",m:"descent",cat:"NGC 1291",deg:"41° 06′ 10″"},
+{title:"The Ambition Ceiling",t:"What level of success have you given yourself permission to want? Where did you set that ceiling, and whose voice was in the room when you did?",m:"both",cat:"HIP 039953",deg:"15° 58′ 31″"},
+{title:"The Status Confession",t:"There is something you want — a title, a room, a recognition — that you've been calling by a different, more acceptable name. Call it what it actually is.",m:"claim",cat:"NGC 2903",deg:"21° 30′ 04″"},
+// THE PAST — SPECIFIC MEMORIES
+{title:"The Scene",t:"There is a specific moment — not a period, not an era, a single scene — that you return to. You are in a room, at a particular age. What happened in that room that you have never fully translated into language?",m:"descent",cat:"NGC 6946",deg:"60° 09′ 13″"},
+{title:"The Version Left Behind",t:"Who were you at seventeen? At twenty-two? At the age just before everything changed. What did that version of you want that you've spent years talking yourself out of?",m:"both",cat:"HIP 019849",deg:"35° 47′ 29″"},
+{title:"The Revision",t:"There is a story from your past you've revised so many times the original is almost gone. What was it before you made it make sense? What are you still protecting in the revision?",m:"descent",cat:"NGC 4258",deg:"47° 18′ 14″"},
+{title:"The Witness",t:"Someone saw you, once, in a way that mattered. They named something real. Do you remember what they said? Have you believed it yet?",m:"both",cat:"HIP 033160",deg:"29° 18′ 17″"},
+{title:"The Thing That Ended",t:"Name something that ended — a relationship, a version of yourself, a place you lived — that you have not yet given a proper ending to. What would a proper ending look like?",m:"descent",cat:"NGC 7009",deg:"21° 04′ 33″"},
+// BODY / SENSATION
+{title:"The Body Report",t:"Right now: where is there tension in your body? Stay with it for thirty seconds without naming what it means. Just locate it. What does it do when you don't immediately interpret it?",m:"descent",cat:"HIP 049908",deg:"26° 49′ 44″"},
+{title:"The Hunger",t:"What are you hungry for right now — not metaphorically, physiologically? When did you last give your body exactly what it was asking for without negotiating it into something more appropriate?",m:"claim",cat:"NGC 5033",deg:"36° 35′ 38″"},
+{title:"The Held Breath",t:"You have been holding something in your body for days. Not a feeling — a physical thing: a clenched jaw, raised shoulders, a sucked-in stomach. Notice it. What would happen if you let it go right now?",m:"descent",cat:"HIP 066249",deg:"07° 21′ 18″"},
+{title:"The Pace",t:"Your body has a natural pace. Your life has a different pace. Describe the gap. Not what it means — just what it feels like when you're running at the wrong speed.",m:"both",cat:"NGC 5746",deg:"01° 57′ 19″"},
+// CREATIVE SELF
+{title:"The Unstarted Work",t:"There is something you have been wanting to make for over a year. You know what it is. What has the not-making of it cost you — not in productivity, in self-respect?",m:"descent",cat:"NGC 6992",deg:"31° 43′ 00″"},
+{title:"The Audience of One",t:"If no one would ever see it — not for your brand, not for your work, not for anyone — what would you make? What does it say that you won't make it anyway?",m:"both",cat:"HIP 085670",deg:"57° 28′ 21″"},
+{title:"The Old Voice",t:"You had a creative voice before you knew it was a brand. Describe it. What did it make? What happened to it and when?",m:"descent",cat:"NGC 4374",deg:"12° 53′ 13″"},
+{title:"The Permission Slip",t:"What creative risk have you been waiting for external validation before taking? Write the permission slip yourself. Sign it. Then say what you're going to make.",m:"claim",cat:"HIP 094376",deg:"10° 58′ 02″"},
+{title:"The Medium You Abandoned",t:"There is a form — writing, making, building, moving — that you gave up at some point. What was the last thing you made in it? Why did you stop? Was that actually your decision?",m:"both",cat:"NGC 3628",deg:"13° 35′ 22″"},
+];
+
+const F={
+  stuck:{title:"The Resistance",t:"Which card stopped you — and what specifically came up when you tried to answer it? Write it here, uncensored.",cat:"HIP 000000",deg:"00° 00′ 00″",m:"both"},
+  avoid:{title:"The Hidden Card",t:"What were you skirting around? Name the thing you didn't let yourself say. This is your card now.",cat:"NGC 0000",deg:"00° 00′ 00″",m:"both"},
+  landed:{title:"The Open Door",t:"What opened up? Write from there — don't summarise it. Go further into it.",cat:"HIP 000001",deg:"00° 00′ 01″",m:"both"},
+  more:{title:"The Shadow Draw",t:"What truth showed up in this reading that you haven't written down yet — because writing it down makes it real?",cat:"NGC 0001",deg:"00° 00′ 01″",m:"both"}
+};
+
+const DF=['fd0','fd1','fd2','fd3','fd4','fd5','fd6','fd7'];
+const CF=['fc0','fc1','fc2','fc3','fc4','fc5','fc6','fc7'];
+const BF=['fb0','fb1','fb2','fb3','fb4','fb5','fb6','fb7'];
+const THEMES=['theme-midnight','theme-oxblood','theme-forest','theme-slate'];
+const CONS=[
+  {name:"Orion",pts:[[.5,.07],[.3,.24],[.7,.24],[.35,.44],[.65,.44],[.5,.5],[.25,.74],[.75,.74]],sg:[[0,1],[0,2],[1,3],[2,4],[3,4],[3,5],[4,5],[5,6],[5,7]]},
+  {name:"Cassiopeia",pts:[[.1,.35],[.3,.15],[.5,.38],[.7,.12],[.9,.28]],sg:[[0,1],[1,2],[2,3],[3,4]]},
+  {name:"Lyra",pts:[[.5,.1],[.3,.38],[.42,.58],[.58,.58],[.7,.38]],sg:[[0,1],[0,4],[1,2],[2,3],[3,4]]},
+  {name:"Cygnus",pts:[[.5,.06],[.5,.94],[.12,.42],[.88,.42],[.5,.52]],sg:[[0,1],[2,3],[0,4],[4,1]]},
+  {name:"Corvus",pts:[[.25,.28],[.72,.22],[.78,.68],[.55,.84],[.22,.64]],sg:[[0,1],[1,2],[2,3],[3,4],[4,0],[0,2]]},
+  {name:"Perseus",pts:[[.5,.09],[.36,.26],[.22,.52],[.4,.65],[.62,.5],[.76,.3]],sg:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,0]]},
+  {name:"Aquila",pts:[[.5,.1],[.32,.42],[.5,.55],[.68,.42],[.5,.9]],sg:[[0,1],[1,2],[2,3],[3,0],[2,4]]},
+  {name:"Gemini",pts:[[.22,.12],[.22,.88],[.78,.12],[.78,.88],[.38,.52],[.62,.52]],sg:[[0,1],[2,3],[0,4],[2,5],[4,5]]},
+  {name:"Leo",pts:[[.2,.6],[.3,.3],[.5,.15],[.72,.28],[.78,.55],[.55,.78]],sg:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,0],[1,4]]},
+  {name:"Scorpius",pts:[[.3,.1],[.5,.25],[.68,.18],[.72,.42],[.6,.62],[.5,.78],[.4,.88]],sg:[[0,1],[1,2],[1,3],[3,4],[4,5],[5,6]]},
+];
+const ROMAN=['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','XVII','XVIII','XIX','XX','XXI'];
+const COORDS=[
+  ["RA 12h 29m 07s","DEC +02° 03′ 09″"],["RA 05h 34m 32s","DEC +22° 00′ 52″"],
+  ["RA 23h 17m 08s","DEC +40° 00′ 22″"],["RA 01h 33m 51s","DEC +30° 39′ 37″"],
+  ["RA 18h 53m 35s","DEC +33° 01′ 45″"],["RA 10h 44m 57s","DEC +12° 21′ 54″"],
+  ["RA 06h 05m 19s","DEC +24° 20′ 12″"],["RA 16h 41m 41s","DEC +36° 27′ 36″"],
+  ["RA 03h 47m 24s","DEC +24° 06′ 18″"],["RA 20h 41m 26s","DEC +45° 16′ 49″"],
+];
+
+let sessions=0,filter='all',last=[],cIdx=0,cardCount=0,themeIdx=0;
+const fc={d:0,c:0,b:0};
+
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+function makeBack(ci){
+  const W=220,H=380,con=CONS[ci%CONS.length];
+  const pts=con.pts.map(p=>[p[0]*W*.76+W*.12,p[1]*H*.72+H*.1]);
+  const r=rng(ci*137+99);
+  let g='';
+  for(let x=0;x<=W;x+=38)g+=`<line x1="${x}" y1="0" x2="${x}" y2="${H}" stroke="#181820" stroke-width="0.4"/>`;
+  for(let y=0;y<=H;y+=38)g+=`<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="#181820" stroke-width="0.4"/>`;
+  const cx=W/2,cy=H*.44;
+  g+=`<circle cx="${cx}" cy="${cy}" r="22" fill="none" stroke="#201e2c" stroke-width="0.5" stroke-dasharray="3,4"/><circle cx="${cx}" cy="${cy}" r="6" fill="none" stroke="#242232" stroke-width="0.5"/><line x1="${cx-30}" y1="${cy}" x2="${cx+30}" y2="${cy}" stroke="#1e1c2a" stroke-width="0.4"/><line x1="${cx}" y1="${cy-30}" x2="${cx}" y2="${cy+30}" stroke="#1e1c2a" stroke-width="0.4"/>`;
+  let sc='';
+  for(let i=0;i<35;i++){const x=r()*W,y=r()*H,sz=r()*.8+.2,op=(r()*.22+.04).toFixed(2);sc+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${sz.toFixed(1)}" fill="#b8b4d0" opacity="${op}"/>`;}
+  let ln='';
+  con.sg.filter(([a,b])=>a<pts.length&&b<pts.length).forEach(([a,b])=>{ln+=`<line x1="${pts[a][0].toFixed(1)}" y1="${pts[a][1].toFixed(1)}" x2="${pts[b][0].toFixed(1)}" y2="${pts[b][1].toFixed(1)}" stroke="#32304a" stroke-width=".9" stroke-linecap="round"/>`;});
+  let st='';
+  pts.forEach((p,i)=>{const pr=i===0||i===Math.floor(pts.length/2);const sz=pr?2.4:1.4,op=pr?.85:.5;st+=`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${sz}" fill="#ddd8f0" opacity="${op}"/>`;if(pr)st+=`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="5" fill="none" stroke="#9088c0" stroke-width=".3" opacity=".25"/>`;});
+  const ly=Math.min(Math.max(...pts.map(p=>p[1]))+16,H-10),lx=pts.reduce((s,p)=>s+p[0],0)/pts.length;
+  return`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice">${g}${sc}${ln}${st}<text x="${lx.toFixed(0)}" y="${ly.toFixed(0)}" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="6" letter-spacing="2.5" fill="#302e48">${con.name.toUpperCase()}</text></svg>`;
+}
+
+function getFace(m){
+  if(m==='descent'){const c=DF[fc.d%DF.length];fc.d++;return c;}
+  if(m==='claim'){const c=CF[fc.c%CF.length];fc.c++;return c;}
+  const c=BF[fc.b%BF.length];fc.b++;return c;
+}
+
+function tickCoords(t){
+  const L=document.getElementById('coord-left'),R=document.getElementById('coord-right');
+  L.classList.add('ticking');R.classList.add('ticking');
+  let n=0;
+  const iv=setInterval(()=>{
+    const sc=s=>s.split('').map(c=>/[0-9]/.test(c)?Math.floor(Math.random()*10):c).join('');
+    L.textContent=sc(t[0]);R.textContent=sc(t[1]);
+    if(++n>12){clearInterval(iv);L.textContent=t[0];R.textContent=t[1];L.classList.remove('ticking');R.classList.remove('ticking');}
+  },45);
+}
+
+function makeCard(p,gi){
+  const ml=p.m==='both'?'D · C':p.m==='descent'?'Descent':'Claim';
+  const ro=ROMAN[gi%ROMAN.length],fc2=getFace(p.m);
+  const s=document.createElement('div');
+  s.className='card-scene';
+  s.innerHTML=`<div class="card-flipper"><div class="card-back">${makeBack(gi)}<div class="card-back-footer"><span class="card-back-id">${p.cat}</span><span class="card-back-mark">DRDSHP</span></div></div><div class="card-face ${fc2}"><div class="card-top-bar"><span class="card-mode-letter">${ml}</span><span class="card-catalogue">${p.cat}</span></div><div class="card-title-block"><div class="card-title">${p.title}</div></div><div class="card-rule"></div><div class="card-prompt-wrap"><p class="card-prompt">${p.t}</p></div><div class="card-bottom-bar"><span class="card-numeral">${ro}</span><span class="card-degree">${p.deg}</span></div></div></div>`;
+  return s;
+}
+
+function sf(f){filter=f;['fa','fd','fc'].forEach(id=>document.getElementById(id).classList.remove('on'));document.getElementById(f==='all'?'fa':f==='descent'?'fd':'fc').classList.add('on');}
+
+function shuffle(a){const r=[...a];for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];}return r;}
+
+function draw(){
+  sessions++;
+  document.getElementById('stag').textContent='Reading '+String(sessions).padStart(2,'0');
+  document.getElementById('abar').classList.remove('on');
+  document.getElementById('fourth-wrap').classList.remove('on');
+  document.getElementById('fourth-slot').innerHTML='';
+  const body=document.body;THEMES.forEach(t=>body.classList.remove(t));body.classList.add(THEMES[themeIdx%THEMES.length]);themeIdx++;
+  tickCoords(COORDS[cIdx%COORDS.length]);cIdx++;
+  let pool=P;
+  if(filter==='descent')pool=P.filter(p=>p.m==='descent'||p.m==='both');
+  if(filter==='claim')pool=P.filter(p=>p.m==='claim'||p.m==='both');
+  const fresh=pool.filter(p=>!last.includes(p));
+  const picked=shuffle(fresh.length>=3?fresh:pool).slice(0,3);
+  last=picked;
+  const grid=document.getElementById('card-grid');grid.innerHTML='';
+  picked.forEach((p,i)=>{const card=makeCard(p,cardCount++);grid.appendChild(card);setTimeout(()=>card.classList.add('flipped'),280+i*320);});
+  setTimeout(()=>document.getElementById('abar').classList.add('on'),280+3*320+1000);
+}
+
+function fourth(type){
+  const fw=document.getElementById('fourth-wrap'),fs=document.getElementById('fourth-slot');
+  fs.innerHTML='';const card=makeCard(F[type],cardCount++);fs.appendChild(card);fw.classList.add('on');
+  setTimeout(()=>card.classList.add('flipped'),200);
+}
+
+sf('all');
+</script>
+</body>
+</html>
