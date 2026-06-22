@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Peckham Deals Board</title>
+<meta name="description" content="Live deals board for SE15 — filter by day, budget, meal time. Spot a new one and it saves to the board." />
+<meta name="color-scheme" content="dark only" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Archivo:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; background: #0C0B08; color: #F2EDE0; }
+  body { font-family: 'Archivo', sans-serif; }
+  #root { min-height: 100vh; }
+</style>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect } = React;
+
+const DEALS = [
+  { id:1,  venue:"Bar Levan",          emoji:"🍷", deal:"Steak frites",          price:"£22",   detail:"Sharing bavette, frites & salad. Sunday treat — proper quality for the price.",            type:"food",   budget:"20+",    days:["Sunday"],                                                             time:"Dinner",      mealTime:"dinner",    chalkboard:false, address:"Blenheim Grove" },
+  { id:2,  venue:"John the Unicorn",   emoji:"🦄", deal:"Margaritas",            price:"£6",    detail:"Ongoing. Ask at the bar — they do Picantes, Tommy's and classic Margi's.",              type:"drinks", budget:"under10", days:["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"], time:"All day",      mealTime:"allday",    chalkboard:true,  address:"Rye Lane" },
+  { id:3,  venue:"John the Unicorn",   emoji:"🦄", deal:"Pizza + cocktail",      price:"£10",   detail:"Every Saturday lunch. Absolute steal — one of the best value deals in SE15.",            type:"both",   budget:"under10", days:["Saturday"],                                                           time:"Lunch",       mealTime:"lunch",     chalkboard:false, address:"Rye Lane" },
+  { id:4,  venue:"John the Unicorn",   emoji:"🦄", deal:"Wine Wednesday carafe", price:"£20",   detail:"Portillo Malbec, Mount Rozier Merlot or Rosé. Proper wine for the price.",              type:"drinks", budget:"20+",    days:["Wednesday"],                                                          time:"Wed evening", mealTime:"dinner",    chalkboard:false, address:"Rye Lane" },
+  { id:5,  venue:"John the Unicorn",   emoji:"🦄", deal:"£6 Picantes",           price:"£6",    detail:"Every Friday. Spicy margarita, cucumber garnish. One of three £6 Friday margs.",        type:"drinks", budget:"under10", days:["Friday"],                                                             time:"Every Friday",mealTime:"dinner",    chalkboard:false, address:"Rye Lane" },
+  { id:6,  venue:"John the Unicorn",   emoji:"🦄", deal:"£6 Tommy's Margarita",  price:"£6",    detail:"Every Friday. Agave-sweetened, no Cointreau. Clean and very £6.",                      type:"drinks", budget:"under10", days:["Friday"],                                                             time:"Every Friday",mealTime:"dinner",    chalkboard:false, address:"Rye Lane" },
+  { id:7,  venue:"John the Unicorn",   emoji:"🦄", deal:"Beers all day",         price:"£4.50", detail:"No strings. Just £4.50 beers, every single day, all day. A public service.",           type:"drinks", budget:"under10", days:["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"], time:"All day",      mealTime:"allday",    chalkboard:false, address:"Rye Lane" },
+  { id:8,  venue:"John the Unicorn",   emoji:"🦄", deal:"Pizza & pint",          price:"£12",   detail:"Every Tuesday. Solid weeknight dinner deal.",                                           type:"both",   budget:"10-20",  days:["Tuesday"],                                                            time:"Every Tue",   mealTime:"dinner",    chalkboard:false, address:"Rye Lane" },
+  { id:9,  venue:"Prince of Peckham",  emoji:"👑", deal:"2-4-1 cocktails",       price:"2-4-1", detail:"Mon–Fri before 8pm. The Burna Boy (chilli tequila, agave, lime) is the move.",         type:"drinks", budget:"under10", days:["Monday","Tuesday","Wednesday","Thursday","Friday"],                    time:"Before 8pm",  mealTime:"dinner",    chalkboard:false, address:"Clayton Rd" },
+  { id:10, venue:"Prince of Peckham",  emoji:"👑", deal:"Cocktails all night",   price:"£5",    detail:"Every Wednesday. No time limit. Just go wild.",                                        type:"drinks", budget:"under10", days:["Wednesday"],                                                          time:"All night",   mealTime:"latenight", chalkboard:false, address:"Clayton Rd" },
+  { id:11, venue:"Prince of Peckham",  emoji:"👑", deal:"Double spirit + mixer", price:"£6",    detail:"Late night Thursdays & Sundays. Stock up.",                                            type:"drinks", budget:"under10", days:["Thursday","Sunday"],                                                   time:"Late night",  mealTime:"latenight", chalkboard:false, address:"Clayton Rd" },
+  { id:12, venue:"Prince of Peckham",  emoji:"👑", deal:"Wings + XL fries",     price:"£15",   detail:"Monday fuel. White Men Can't Jerk in the kitchen.",                                    type:"food",   budget:"10-20",  days:["Monday"],                                                             time:"All day",     mealTime:"allday",    chalkboard:false, address:"Clayton Rd" },
+  { id:13, venue:"Prince of Peckham",  emoji:"👑", deal:"2 buns + fries",        price:"£15",   detail:"Tuesday. Caribbean-inspired buns from White Men Can't Jerk.",                          type:"food",   budget:"10-20",  days:["Tuesday"],                                                            time:"All day",     mealTime:"allday",    chalkboard:false, address:"Clayton Rd" },
+  { id:14, venue:"Prince of Peckham",  emoji:"👑", deal:"Bottomless brunch",     price:"£18+",  detail:"Sat & Sun. Min £10 food + £18 for 2hrs unlimited bubbles or rum punch.",               type:"both",   budget:"20+",    days:["Saturday","Sunday"],                                                   time:"Brunch",      mealTime:"brunch",    chalkboard:false, address:"Clayton Rd" },
+  { id:15, venue:"Bar Story",          emoji:"🍕", deal:"Happy hour daily",      price:"~£8",   detail:"Cocktails + pizza under the arches. Every day 6–7pm. Consistent and cheap.",           type:"both",   budget:"under10", days:["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"], time:"6–7pm",        mealTime:"dinner",    chalkboard:false, address:"Blenheim Grove" },
+  { id:16, venue:"Angel Oak",          emoji:"🌳", deal:"5 wings",               price:"£5",    detail:"Every Wednesday. Stack them high.",                                                    type:"food",   budget:"under10", days:["Wednesday"],                                                          time:"All day",     mealTime:"allday",    chalkboard:false, address:"Peckham Rye" },
+  { id:17, venue:"Angel Oak",          emoji:"🌳", deal:"Prosecco bottle",       price:"£25",   detail:"Every Friday. Start the weekend properly.",                                            type:"drinks", budget:"20+",    days:["Friday"],                                                             time:"All day",     mealTime:"allday",    chalkboard:false, address:"Peckham Rye" },
+  { id:18, venue:"Artusi",             emoji:"🍝", deal:"Sunday set menu",       price:"£25",   detail:"3 courses, noon–8pm. Genuinely one of London's best Sunday deals for the quality.",    type:"food",   budget:"20+",    days:["Sunday"],                                                             time:"Noon–8pm",    mealTime:"lunch",     chalkboard:false, address:"Bellenden Rd" },
+  { id:19, venue:"Lai Rai",            emoji:"🍜", deal:"Lunch — bánh mì + coffee", price:"~£17", detail:"Weekday lunch at the Vietnamese canteen on Rye Lane. Verify exact price in person 👀", type:"food",   budget:"10-20",  days:["Monday","Tuesday","Wednesday","Thursday","Friday"],                    time:"Lunch",       mealTime:"lunch",     chalkboard:true,  address:"Rye Lane" },
+  { id:20, venue:"The White Horse",    emoji:"🐴", deal:"Four O'Clock Club",     price:"£4",    detail:"Amstel, Murphy's, cider, house wine (175ml), G&T. Mon–Fri 4–6pm. Legendary.",          type:"drinks", budget:"under10", days:["Monday","Tuesday","Wednesday","Thursday","Friday"],                    time:"4–6pm",       mealTime:"dinner",    chalkboard:false, address:"Peckham Rye" },
+  { id:21, venue:"The White Horse",    emoji:"🐴", deal:"Cask Ale Club",         price:"£3.50", detail:"London breweries on rotation. Wed 6pm–close & Sat noon–6pm. Cheapest decent pint around.", type:"drinks", budget:"under10", days:["Wednesday","Saturday"],                                            time:"Wed 6pm–close / Sat noon–6pm", mealTime:"dinner", chalkboard:false, address:"Peckham Rye" },
+  { id:22, venue:"The White Horse",    emoji:"🐴", deal:"£5 Negroni",            price:"£5",    detail:"Every Thursday 6–9pm. A proper negroni for a fiver. No notes.",                       type:"drinks", budget:"under10", days:["Thursday"],                                                           time:"6–9pm",       mealTime:"dinner",    chalkboard:false, address:"Peckham Rye" },
+  { id:23, venue:"The White Horse",    emoji:"🐴", deal:"Rotating boards",       price:"Varies",detail:"Kitchen + drinks specials change weekly. Check their Instagram. Mondo Sando in the kitchen.", type:"both", budget:"under10", days:["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"], time:"Various", mealTime:"allday",    chalkboard:true,  address:"Peckham Rye" },
+  { id:24, venue:"Market Place",       emoji:"🏪", deal:"Super Sunday pints",    price:"£4",    detail:"Draught pints every Sunday at the Rye Lane food hall. 9 traders, pool tables, good vibes.", type:"drinks", budget:"under10", days:["Sunday"],                                                     time:"All day",     mealTime:"allday",    chalkboard:false, address:"Rye Lane (Aylesham)" },
+  { id:25, venue:"Market Place",       emoji:"🏪", deal:"Monday meals",          price:"£5",    detail:"Student deal, open to all. Pick from 9 international traders — Thai, Japanese, Mexican, shawarma.", type:"food", budget:"under10", days:["Monday"],                                                time:"All day",     mealTime:"allday",    chalkboard:false, address:"Rye Lane (Aylesham)" },
+  { id:26, venue:"Ganapati",           emoji:"🌶️", deal:"Weekday lunch thali",   price:"£9.75–12.50", detail:"South Indian thali (veg, chicken or fish). Tue–Fri noon–2:45pm. One of the best lunches in SE15.", type:"food", budget:"10-20", days:["Tuesday","Wednesday","Thursday","Friday"],           time:"Noon–2:45pm", mealTime:"lunch",     chalkboard:false, address:"Holly Grove" },
+  { id:27, venue:"Dinner for 100",     emoji:"🍕", deal:"Spritz under a fiver",  price:"<£5",   detail:"Nunhead. Aperol and spritz menu bafflingly good value. Time Out called it out specifically.", type:"drinks", budget:"under10", days:["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"], time:"All day", mealTime:"allday",  chalkboard:true,  address:"Nunhead" },
+];
+const DAYS  = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+const DSHORT = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+const BUDGETS = {
+  "under10": { label:"Under £10", dot:"#3DBA5C" },
+  "10-20":   { label:"£10–20",    dot:"#F0A500" },
+  "20+":     { label:"£20+",      dot:"#E8341A" },
+};
+const TYPES = {
+  food:   { label:"🍴 Food" },
+  drinks: { label:"🍹 Drinks" },
+  both:   { label:"✨ Both" },
+};
+const MEALS = {
+  breakfast: { label:"🍳 Breakfast" },
+  brunch:    { label:"🥂 Brunch" },
+  lunch:     { label:"☀️ Lunch" },
+  dinner:    { label:"🌙 Dinner" },
+  latenight: { label:"🌛 Late Night" },
+  allday:    { label:"📅 All Day" },
+};
+const STORAGE_KEY = "peckham-deals-v2";
+
+function App() {
+  const [day,      setDay]      = useState(null);
+  const [budget,   setBudget]   = useState(null);
+  const [type,     setType]     = useState(null);
+  const [meal,     setMeal]     = useState(null);
+  const [showForm, setShowForm] = useState(false);
+  const [userDeals,setUserDeals]= useState([]);
+  const [ready,    setReady]    = useState(false);
+  const [saving,   setSaving]   = useState(false);
+  const [form, setForm] = useState({ venue:"", deal:"", price:"", detail:"", days:[], budget:"under10", type:"food", mealTime:"allday", time:"" });
+  const today = DAYS[new Date().getDay() === 0 ? 6 : new Date().getDay() - 1];
+  useEffect(() => {
+    (async () => {
+      try { const saved = localStorage.getItem(STORAGE_KEY); if (saved) setUserDeals(JSON.parse(saved)); } catch {}
+      setReady(true);
+    })();
+  }, []);
+  const all = [...DEALS, ...userDeals];
+  const filtered = all.filter(d => {
+    if (day    && !d.days.includes(day))    return false;
+    if (budget && d.budget !== budget)      return false;
+    if (type   && d.type   !== type)        return false;
+    if (meal   && d.mealTime !== meal)      return false;
+    return true;
+  });
+  async function save() {
+    if (!form.venue || !form.deal || !form.days.length) return;
+    setSaving(true);
+    const nd = { ...form, id: Date.now(), emoji:"📸", chalkboard:true, address:"Peckham" };
+    const next = [...userDeals, nd];
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); setUserDeals(next); } catch {}
+    setSaving(false);
+    setForm({ venue:"", deal:"", price:"", detail:"", days:[], budget:"under10", type:"food", mealTime:"allday", time:"" });
+    setShowForm(false);
+  }
+  async function remove(id) {
+    const next = userDeals.filter(d => d.id !== id);
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); setUserDeals(next); } catch {}
+  }
+  function toggleDay(d) { setForm(f => ({ ...f, days: f.days.includes(d) ? f.days.filter(x=>x!==d) : [...f.days,d] })); }
+  const activeFilters = [budget,type,meal].filter(Boolean).length;
+  return (
+    <div style={{ minHeight:"100vh", background:"#0C0B08", color:"#F2EDE0" }}>
+      <style>{`
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{background:#0C0B08;}
+        :root{
+          --red:#E8341A; --green:#2E9448; --gold:#F0A500;
+          --bg:#0C0B08; --card:#141310; --border:#2A2620;
+          --chalk:#F2EDE0; --muted:#7A7060; --faint:#1E1C17;
+        }
+        .grain::after{content:'';position:fixed;inset:0;pointer-events:none;opacity:.04;z-index:100;
+          background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+        .tag{
+          display:inline-block; padding:3px 9px; border-radius:2px;
+          font-family:'Barlow Condensed',sans-serif; font-size:11px; font-weight:700;
+          letter-spacing:1.2px; text-transform:uppercase;
+        }
+        .chip{
+          cursor:pointer; border:1.5px solid var(--border); border-radius:3px;
+          padding:5px 12px; background:transparent; color:var(--muted);
+          font-family:'Barlow Condensed',sans-serif; font-size:11px; font-weight:700;
+          letter-spacing:1px; text-transform:uppercase; transition:all .1s; white-space:nowrap;
+        }
+        .chip:hover{border-color:var(--chalk);color:var(--chalk);}
+        .chip.on{background:var(--chalk);border-color:var(--chalk);color:var(--bg);}
+        .chip.red-on{background:var(--red);border-color:var(--red);color:#fff;}
+        .dpill{
+          cursor:pointer; border:1.5px solid var(--border); border-radius:2px;
+          padding:4px 9px; background:transparent; color:var(--muted);
+          font-family:'Barlow Condensed',sans-serif; font-size:11px; font-weight:800;
+          letter-spacing:1.5px; text-transform:uppercase; transition:all .1s;
+        }
+        .dpill:hover{border-color:var(--chalk);color:var(--chalk);}
+        .dpill.on{background:var(--red);border-color:var(--red);color:#fff;}
+        .dpill.today{border-color:var(--gold);color:var(--gold);}
+        .card{
+          background:var(--card); border:1.5px solid var(--border);
+          border-radius:3px; position:relative; overflow:hidden;
+          transition:all .15s;
+        }
+        .card:hover{border-color:#4A4438;transform:translateY(-1px);box-shadow:0 6px 24px #00000060;}
+        .price-hero{
+          font-family:'Barlow Condensed',sans-serif; font-weight:900; line-height:1;
+          letter-spacing:-1px;
+        }
+        .deal-title{
+          font-family:'Barlow Condensed',sans-serif; font-weight:800;
+          font-size:18px; line-height:1.1; letter-spacing:.3px; text-transform:uppercase;
+        }
+        .venue-name{
+          font-family:'Barlow Condensed',sans-serif; font-weight:600;
+          font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--muted);
+        }
+        .detail-text{
+          font-family:'Archivo',sans-serif; font-size:12px; font-weight:400;
+          color:var(--muted); line-height:1.55;
+        }
+        .inp{
+          background:#1A1814; border:1.5px solid var(--border); border-radius:3px;
+          padding:9px 12px; color:var(--chalk); width:100%; outline:none;
+          font-family:'Archivo',sans-serif; font-size:13px; transition:border .1s;
+        }
+        .inp:focus{border-color:#5A5040;}
+        .inp::placeholder{color:#4A4438;}
+        .sel{
+          background:#1A1814; border:1.5px solid var(--border); border-radius:3px;
+          padding:9px 12px; color:var(--chalk); outline:none; width:100%;
+          font-family:'Archivo',sans-serif; font-size:13px; appearance:none; cursor:pointer;
+        }
+        .btn-red{
+          background:var(--red); color:#fff; border:none; border-radius:3px;
+          padding:10px 22px; font-family:'Barlow Condensed',sans-serif;
+          font-size:13px; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;
+          cursor:pointer; transition:all .1s;
+        }
+        .btn-red:hover{background:#C5280E;}
+        .btn-red:disabled{opacity:.5;cursor:not-allowed;}
+        .btn-ghost{
+          background:transparent; color:var(--muted); border:1.5px solid var(--border);
+          border-radius:3px; padding:10px 22px; font-family:'Barlow Condensed',sans-serif;
+          font-size:13px; font-weight:700; letter-spacing:1px; text-transform:uppercase;
+          cursor:pointer; transition:all .1s;
+        }
+        .btn-ghost:hover{border-color:#5A5040;color:var(--chalk);}
+        .del-btn{
+          opacity:0; position:absolute; top:10px; right:10px;
+          background:#1E1C17; border:1px solid var(--red); border-radius:2px;
+          color:var(--red); font-size:10px; font-weight:800; padding:3px 7px;
+          cursor:pointer; font-family:'Barlow Condensed',sans-serif; letter-spacing:.5px;
+          text-transform:uppercase; transition:opacity .1s;
+        }
+        .card:hover .del-btn{opacity:1;}
+        .sticky-bar{
+          background:#0C0B08cc; position:sticky; top:0; z-index:20;
+          border-bottom:1.5px solid var(--border); backdrop-filter:blur(12px);
+        }
+        @keyframes up{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+        .card{animation:up .18s ease both;}
+        .stripe-bg{
+          background: repeating-linear-gradient(
+            -45deg, transparent, transparent 4px, rgba(255,255,255,.015) 4px, rgba(255,255,255,.015) 8px
+          );
+        }
+        .slabel{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);}
+        .stat-n{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:36px;line-height:1;letter-spacing:-1px;}
+        .stat-l{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);}
+      `}</style>
+      <div className="grain" />
+      <div style={{ background:"var(--red)", padding:"7px 20px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+        <span style={{ fontFamily:"'Barlow Condensed'", fontWeight:800, fontSize:11, letterSpacing:"2.5px", textTransform:"uppercase", color:"#fff" }}>
+          SE15 · Peckham · {new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"})}
+        </span>
+        <button onClick={() => setShowForm(!showForm)} style={{ background:"transparent", border:"1.5px solid #ffffff60", borderRadius:2, color:"#fff", fontFamily:"'Barlow Condensed'", fontSize:10, fontWeight:800, letterSpacing:"1.5px", textTransform:"uppercase", padding:"4px 12px", cursor:"pointer" }}>
+          {showForm ? "✕ Cancel" : "+ Spot a deal"}
+        </button>
+      </div>
+      <div className="stripe-bg" style={{ borderBottom:"1.5px solid var(--border)", padding:"32px 20px 28px" }}>
+        <div style={{ maxWidth:740, margin:"0 auto" }}>
+          <div style={{ display:"flex", alignItems:"flex-end", justifyContent:"space-between", flexWrap:"wrap", gap:20 }}>
+            <div>
+              <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
+                <div style={{ width:3, height:60, background:"var(--red)" }} />
+                <div>
+                  <div style={{ fontFamily:"'Barlow Condensed'", fontSize:"clamp(52px,9vw,80px)", fontWeight:900, lineHeight:.9, letterSpacing:"-2px", textTransform:"uppercase", color:"var(--chalk)" }}>
+                    Deals
+                  </div>
+                  <div style={{ fontFamily:"'Barlow Condensed'", fontSize:"clamp(52px,9vw,80px)", fontWeight:900, lineHeight:.9, letterSpacing:"-2px", textTransform:"uppercase", color:"var(--red)" }}>
+                    Board
+                  </div>
+                </div>
+              </div>
+              <div style={{ fontFamily:"'Archivo'", fontSize:12, color:"var(--muted)", marginTop:8 }}>
+                Your guide to not paying full price in Peckham. Updated as you walk around.
+              </div>
+            </div>
+            <div style={{ display:"flex", gap:0, border:"1.5px solid var(--border)", borderRadius:3, overflow:"hidden" }}>
+              {[
+                { n: all.filter(d=>d.days.includes(today)).length, label:"Today", color:"var(--red)" },
+                { n: all.filter(d=>d.budget==="under10").length,   label:"Under £10", color:"var(--green)" },
+                { n: userDeals.length,                             label:"You spotted", color:"var(--gold)" },
+              ].map((s,i) => (
+                <div key={i} style={{ padding:"12px 16px", borderLeft: i>0 ? "1.5px solid var(--border)" : "none", textAlign:"center", minWidth:70 }}>
+                  <div className="stat-n" style={{ color:s.color }}>{s.n}</div>
+                  <div className="stat-l" style={{ marginTop:4 }}>{s.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style={{ background:"var(--gold)", padding:"8px 20px", borderBottom:"1.5px solid var(--border)" }}>
+        <div style={{ maxWidth:740, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+          <span style={{ fontFamily:"'Barlow Condensed'", fontWeight:800, fontSize:13, letterSpacing:"1px", textTransform:"uppercase", color:"#0C0B08" }}>
+            📍 Today is {today} — {all.filter(d=>d.days.includes(today)).length} deals on right now
+          </span>
+          <button
+            className={`chip ${day===today?"red-on":""}`}
+            style={{ borderColor:"#0C0B0880", color: day===today?"#fff":"#0C0B08", background: day===today?"var(--red)":"transparent" }}
+            onClick={() => setDay(p => p===today ? null : today)}
+          >
+            {day===today?"✕ Clear":"Today only"}
+          </button>
+        </div>
+      </div>
+      {showForm && (
+        <div style={{ background:"var(--faint)", borderBottom:"1.5px solid var(--border)", padding:"20px" }}>
+          <div style={{ maxWidth:740, margin:"0 auto" }}>
+            <div className="slabel" style={{ color:"var(--red)", marginBottom:14 }}>📸 Add a spotted deal — saves permanently</div>
+            <div style={{ display:"grid", gap:10 }}>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 120px", gap:10 }}>
+                <input className="inp" placeholder="Venue name" value={form.venue} onChange={e=>setForm(f=>({...f,venue:e.target.value}))} />
+                <input className="inp" placeholder="The deal (e.g. 2-4-1 cocktails)" value={form.deal} onChange={e=>setForm(f=>({...f,deal:e.target.value}))} />
+                <input className="inp" placeholder="Price (£6)" value={form.price} onChange={e=>setForm(f=>({...f,price:e.target.value}))} />
+              </div>
+              <input className="inp" placeholder="Detail (optional)" value={form.detail} onChange={e=>setForm(f=>({...f,detail:e.target.value}))} />
+              <div>
+                <div className="slabel" style={{ marginBottom:7 }}>Days</div>
+                <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
+                  {DAYS.map((d,i) => <button key={d} className={`dpill ${form.days.includes(d)?"on":""}`} onClick={()=>toggleDay(d)}>{DSHORT[i]}</button>)}
+                </div>
+              </div>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:10 }}>
+                <div><div className="slabel" style={{marginBottom:5}}>Budget</div>
+                  <select className="sel" value={form.budget} onChange={e=>setForm(f=>({...f,budget:e.target.value}))}>
+                    <option value="under10">Under £10</option><option value="10-20">£10–20</option><option value="20+">£20+</option>
+                  </select></div>
+                <div><div className="slabel" style={{marginBottom:5}}>Type</div>
+                  <select className="sel" value={form.type} onChange={e=>setForm(f=>({...f,type:e.target.value}))}>
+                    <option value="food">Food</option><option value="drinks">Drinks</option><option value="both">Both</option>
+                  </select></div>
+                <div><div className="slabel" style={{marginBottom:5}}>Meal time</div>
+                  <select className="sel" value={form.mealTime} onChange={e=>setForm(f=>({...f,mealTime:e.target.value}))}>
+                    <option value="breakfast">Breakfast</option><option value="brunch">Brunch</option><option value="lunch">Lunch</option>
+                    <option value="dinner">Dinner</option><option value="latenight">Late Night</option><option value="allday">All Day</option>
+                  </select></div>
+                <div><div className="slabel" style={{marginBottom:5}}>Time</div>
+                  <input className="inp" placeholder="e.g. 6–8pm" value={form.time} onChange={e=>setForm(f=>({...f,time:e.target.value}))} /></div>
+              </div>
+              <div style={{display:"flex",gap:10}}>
+                <button className="btn-red" onClick={save} disabled={saving}>{saving?"Saving…":"Save deal ✓"}</button>
+                <button className="btn-ghost" onClick={()=>setShowForm(false)}>Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      <div className="sticky-bar">
+        <div style={{ maxWidth:740, margin:"0 auto", padding:"10px 20px", display:"grid", gap:8 }}>
+          <div style={{ display:"flex", gap:4, flexWrap:"wrap", alignItems:"center" }}>
+            <span className="slabel" style={{ marginRight:6, whiteSpace:"nowrap" }}>Day</span>
+            {DAYS.map((d,i) => (
+              <button key={d} className={`dpill ${day===d?"on":""} ${d===today&&day!==d?"today":""}`} onClick={()=>setDay(p=>p===d?null:d)}>
+                {DSHORT[i]}{d===today?" ●":""}
+              </button>
+            ))}
+            {day && <button className="dpill" style={{borderColor:"#2A2620",color:"#4A4438"}} onClick={()=>setDay(null)}>✕</button>}
+          </div>
+          <div style={{ display:"flex", gap:4, flexWrap:"wrap", alignItems:"center" }}>
+            <span className="slabel" style={{ marginRight:6 }}>Filter</span>
+            {Object.entries(BUDGETS).map(([k,v]) => (
+              <button key={k} className={`chip ${budget===k?"on":""}`}
+                style={budget!==k?{borderColor:v.dot+"40",color:v.dot}:{}}
+                onClick={()=>setBudget(p=>p===k?null:k)}>{v.label}</button>
+            ))}
+            <span style={{color:"var(--border)",padding:"0 3px"}}>·</span>
+            {Object.entries(TYPES).map(([k,v]) => (
+              <button key={k} className={`chip ${type===k?"on":""}`} onClick={()=>setType(p=>p===k?null:k)}>{v.label}</button>
+            ))}
+            <span style={{color:"var(--border)",padding:"0 3px"}}>·</span>
+            {Object.entries(MEALS).map(([k,v]) => (
+              <button key={k} className={`chip ${meal===k?"on":""}`} onClick={()=>setMeal(p=>p===k?null:k)}>{v.label}</button>
+            ))}
+            {activeFilters>0 && (
+              <button className="chip" style={{borderColor:"var(--red)",color:"var(--red)"}}
+                onClick={()=>{setBudget(null);setType(null);setMeal(null);}}>
+                Clear ({activeFilters})
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+      <div style={{ maxWidth:740, margin:"0 auto", padding:"16px 20px 60px" }}>
+        <div style={{ display:"flex", alignItems:"baseline", gap:8, marginBottom:14 }}>
+          <span style={{ fontFamily:"'Barlow Condensed'", fontSize:28, fontWeight:900, letterSpacing:"-1px", color:"var(--chalk)" }}>
+            {filtered.length} {filtered.length===1?"deal":"deals"}
+          </span>
+          <span style={{ fontFamily:"'Archivo'", fontSize:12, color:"var(--muted)" }}>
+            {day ? `on ${day}s` : "across the week"}
+          </span>
+          {!ready && <span style={{fontSize:11,color:"var(--muted)",marginLeft:"auto"}}>Loading…</span>}
+        </div>
+        {filtered.length===0 ? (
+          <div style={{ textAlign:"center", padding:"80px 0" }}>
+            <div style={{ fontSize:48, marginBottom:16 }}>🫗</div>
+            <div style={{ fontFamily:"'Barlow Condensed'", fontSize:28, fontWeight:800, textTransform:"uppercase", color:"var(--chalk)", letterSpacing:"-1px" }}>Nothing here</div>
+            <div style={{ fontFamily:"'Archivo'", fontSize:13, color:"var(--muted)", marginTop:8 }}>Try different filters — or go spot one yourself.</div>
+          </div>
+        ) : (
+          <div style={{ display:"grid", gap:8 }}>
+            {filtered.map((deal, i) => {
+              const bCfg = BUDGETS[deal.budget];
+              const isToday = deal.days.includes(today);
+              const isUser  = !!userDeals.find(d=>d.id===deal.id);
+              const priceSize = deal.price && deal.price.length > 5 ? "28px" : "42px";
+              return (
+                <div key={deal.id} className="card" style={{ animationDelay:`${i*.025}s` }}>
+                  <div style={{ position:"absolute", left:0, top:0, bottom:0, width:4, background:bCfg.dot }} />
+                  {isUser && <button className="del-btn" onClick={()=>remove(deal.id)}>✕ Remove</button>}
+                  <div style={{ padding:"14px 16px 14px 20px", display:"grid", gridTemplateColumns:"1fr auto", gap:12, alignItems:"start" }}>
+                    <div>
+                      <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:5, flexWrap:"wrap" }}>
+                        <span style={{ fontSize:13 }}>{deal.emoji}</span>
+                        <span className="venue-name">{deal.venue}</span>
+                        <span style={{ fontFamily:"'Barlow Condensed'", fontSize:10, color:"#3A3628" }}>·</span>
+                        <span style={{ fontFamily:"'Archivo'", fontSize:11, color:"#4A4438" }}>{deal.address}</span>
+                        {deal.chalkboard && (
+                          <span className="tag" style={{ background:"#2A2414", color:"var(--gold)", border:"1px solid #4A3A0A", marginLeft:"auto" }}>🖊 Verify</span>
+                        )}
+                        {isUser && (
+                          <span className="tag" style={{ background:"#0E2418", color:"var(--green)", border:"1px solid #1A4228" }}>📸 You</span>
+                        )}
+                      </div>
+                      <div className="deal-title" style={{ color:"var(--chalk)", marginBottom:5 }}>{deal.deal}</div>
+                      {deal.detail && <div className="detail-text" style={{ marginBottom:10 }}>{deal.detail}</div>}
+                      <div style={{ display:"flex", gap:5, flexWrap:"wrap", alignItems:"center" }}>
+                        <span className="tag" style={{ background:bCfg.dot+"18", color:bCfg.dot }}>{bCfg.label}</span>
+                        <span className="tag" style={{ background:"#1E1C17", color:"#6A6050" }}>{TYPES[deal.type]?.label}</span>
+                        <span style={{ fontFamily:"'Barlow Condensed'", fontSize:11, fontWeight:700, letterSpacing:"1px", textTransform:"uppercase", color:"#4A4438" }}>{MEALS[deal.mealTime]?.label}</span>
+                        {deal.time && <span style={{ fontFamily:"'Archivo'", fontSize:11, color:"#3A3628" }}>⏰ {deal.time}</span>}
+                      </div>
+                    </div>
+                    <div style={{ textAlign:"right", display:"flex", flexDirection:"column", alignItems:"flex-end", gap:6, flexShrink:0 }}>
+                      <div className="price-hero" style={{ fontSize:priceSize, color: isToday ? "var(--red)" : "var(--chalk)", letterSpacing:"-1px" }}>
+                        {deal.price}
+                      </div>
+                      <div style={{ display:"flex", gap:3, flexWrap:"wrap", justifyContent:"flex-end", maxWidth:120 }}>
+                        {deal.days.length===7
+                          ? <span className="tag" style={{background:"var(--faint)",color:"#5A5040"}}>Every day</span>
+                          : (deal.days.length>=5 && deal.days.includes("Monday") && deal.days.includes("Friday"))
+                          ? <span className="tag" style={{background:"var(--faint)",color:"#5A5040"}}>Mon–Fri</span>
+                          : deal.days.map(d => (
+                            <span key={d} className="tag" style={{
+                              background: d===today?"var(--red)":"var(--faint)",
+                              color: d===today?"#fff":"#5A5040",
+                            }}>{d.slice(0,3)}</span>
+                          ))
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        <div style={{ marginTop:40, paddingTop:20, borderTop:"1.5px solid var(--border)", textAlign:"center" }}>
+          <p style={{ fontFamily:"'Archivo'", fontSize:11, color:"#3A3628", lineHeight:1.7 }}>
+            🖊 Chalkboard deals change — verify on Instagram before heading out.<br/>
+            Your spotted deals save permanently. ✓
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+</script>
+</body>
+</html>
