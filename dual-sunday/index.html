@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dual Sunday Spell Drop™</title>
+<meta name="description" content="Weekly strategy as ritual. Live moon phases, AM/PM intentions, and opinions about how Sunday should feel." />
+<meta name="color-scheme" content="light only" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Josefin+Sans:wght@300;400;600&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --ink:             #18130e;
+  --ink-soft:        #2e2720;
+  --sepia:           #54483c;
+  --sepia-light:     #8a7d70;
+  --parchment:       #f4efe6;
+  --parchment-warm:  #ede6d8;
+  --parchment-deep:  #e3dace;
+  --verdigris:       #2c5e52;
+  --verdigris-mid:   #3d7568;
+  --verdigris-dim:   rgba(44, 94, 82, 0.1);
+  --umber:           #7a5038;
+  --rule:            rgba(24, 19, 14, 0.15);
+  --rule-faint:      rgba(24, 19, 14, 0.07);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html {
+  scroll-behavior: smooth;
+  background-color: #f4efe6;
+  color-scheme: light only;
+}
+body {
+  background-color: var(--parchment);
+  color: var(--ink);
+  font-family: 'Josefin Sans', sans-serif;
+  font-weight: 400;
+  min-height: 100vh;
+  position: relative;
+}
+/* Subtle grain overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.6;
+}
+/* ── Layout ── */
+#app {
+  position: relative;
+  z-index: 1;
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 4rem 2rem 6rem;
+}
+/* ── Header ── */
+.site-header {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+.header-sigil {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.2rem;
+  margin-bottom: 1.5rem;
+  color: var(--sepia-light);
+  font-size: 1rem;
+  letter-spacing: 0.3em;
+}
+.wordmark {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 400;
+  color: var(--ink);
+  letter-spacing: 0.01em;
+  line-height: 1;
+  margin-bottom: 0.4rem;
+}
+.wordmark sup {
+  font-family: 'Josefin Sans', sans-serif;
+  font-style: normal;
+  font-size: 0.3em;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  vertical-align: super;
+  color: var(--sepia);
+}
+.tagline {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--sepia-light);
+  margin-bottom: 3rem;
+}
+/* Moon ornament */
+.moon-ornament {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+.moon-ring {
+  position: relative;
+  width: 140px;
+  height: 140px;
+}
+.moon-ring svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.moon-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  animation: moonDrift 8s ease-in-out infinite;
+}
+@keyframes moonDrift {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+.moon-phase-name {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 1rem;
+  color: var(--ink-soft);
+  letter-spacing: 0.05em;
+}
+.moon-sub {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--sepia-light);
+}
+.moon-date {
+  font-size: 11px;
+  color: var(--sepia);
+  letter-spacing: 0.08em;
+}
+.header-manifesto {
+  max-width: 480px;
+  margin: 2rem auto 0;
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 1rem;
+  line-height: 1.9;
+  color: var(--sepia);
+  text-align: center;
+}
+/* ── Section ── */
+.section {
+  margin-bottom: 3.5rem;
+}
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 0.5px solid var(--rule);
+}
+.section-glyph {
+  font-size: 1rem;
+  color: var(--verdigris);
+  flex-shrink: 0;
+  font-weight: 600;
+}
+.section-title {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.45em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  flex: 1;
+}
+.section-ornament {
+  font-size: 0.8rem;
+  color: var(--sepia);
+  letter-spacing: 0.2em;
+  flex-shrink: 0;
+}
+/* ── Prompt Grid ── */
+.prompt-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 3rem;
+}
+@media (max-width: 600px) {
+  .prompt-grid { grid-template-columns: 1fr; gap: 0; }
+}
+.prompt-block {
+  padding: 1.5rem 0;
+  border-bottom: 0.5px solid var(--rule-faint);
+}
+.prompt-block:last-child { border-bottom: none; }
+.prompt-label {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+  line-height: 1.6;
+  margin-bottom: 0.75rem;
+  display: block;
+}
+textarea {
+  width: 100%;
+  min-height: 80px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--sepia-light);
+  padding: 8px 0;
+  color: var(--ink);
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.8;
+  resize: none;
+  outline: none;
+  transition: border-color 0.2s;
+}
+textarea::placeholder {
+  color: var(--sepia-light);
+  font-style: italic;
+}
+textarea:focus {
+  border-bottom-color: var(--verdigris);
+}
+/* ── Moon Timeline ── */
+.timeline-section {
+  margin-bottom: 3.5rem;
+}
+.timeline-strip {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  background: var(--rule);
+  border: 0.5px solid var(--rule);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.timeline-day {
+  background: var(--parchment);
+  text-align: center;
+  padding: 1rem 0.5rem;
+  transition: background 0.2s;
+}
+.timeline-day:hover { background: var(--parchment-warm); }
+.timeline-day.today {
+  background: var(--parchment-deep);
+}
+.tday-name {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--sepia);
+  margin-bottom: 4px;
+}
+.tday-num {
+  font-family: 'IM Fell English', serif;
+  font-size: 1.1rem;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+  line-height: 1;
+}
+.timeline-day.today .tday-num { color: var(--verdigris); font-weight: 700; }
+.tday-moon { font-size: 1.3rem; }
+/* ── Save Buttons ── */
+.cta-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 3.5rem;
+}
+@media (max-width: 480px) { .cta-row { grid-template-columns: 1fr; } }
+.btn-save {
+  padding: 14px 20px;
+  background: transparent;
+  border: 1px solid var(--sepia);
+  border-radius: 2px;
+  cursor: pointer;
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--sepia);
+  transition: all 0.2s;
+}
+.btn-save:hover {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--parchment);
+}
+.btn-save:active { transform: scale(0.98); }
+/* ── Archive ── */
+.archive-section { margin-bottom: 2rem; }
+.archive-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 0.5px solid var(--rule);
+}
+.btn-clear {
+  background: transparent;
+  border: none;
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--sepia-light);
+  cursor: pointer;
+  transition: color 0.2s;
+  padding: 0;
+}
+.btn-clear:hover { color: var(--umber); }
+.archive-list {
+  display: flex;
+  flex-direction: column;
+}
+.archive-entry {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 1.5rem;
+  padding: 1.25rem 0;
+  border-bottom: 0.5px solid var(--rule-faint);
+}
+.entry-meta { text-align: right; padding-top: 2px; }
+.entry-date {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 0.8rem;
+  color: var(--sepia-light);
+  display: block;
+  margin-bottom: 4px;
+}
+.entry-badge {
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--verdigris);
+}
+.entry-badge.pm { color: var(--umber); }
+.entry-content {
+  font-family: 'IM Fell English', serif;
+  font-size: 0.9rem;
+  line-height: 1.75;
+  color: var(--sepia);
+}
+.entry-content strong {
+  font-style: italic;
+  color: var(--ink-soft);
+  font-weight: 400;
+}
+.archive-empty {
+  padding: 2.5rem 0;
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 0.95rem;
+  color: var(--sepia-light);
+  text-align: center;
+}
+/* ── Divider ornament ── */
+.ornament {
+  text-align: center;
+  color: var(--sepia-light);
+  letter-spacing: 0.6em;
+  font-size: 0.65rem;
+  margin: 1rem 0 2.5rem;
+}
+/* ── Footer ── */
+.site-footer {
+  text-align: center;
+  padding-top: 2rem;
+  border-top: 0.5px solid var(--rule);
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 0.85rem;
+  line-height: 1.9;
+  color: var(--sepia-light);
+}
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(130%);
+  background: var(--ink);
+  color: var(--parchment);
+  border-radius: 2px;
+  padding: 10px 22px;
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 1000;
+  white-space: nowrap;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+/* ── Live indicator ── */
+.moon-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--verdigris);
+  margin-top: 2px;
+}
+.moon-live-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--verdigris);
+  animation: pulse 2.5s ease-in-out infinite;
+  flex-shrink: 0;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.7); }
+}
+.moon-live.offline {
+  color: var(--sepia-light);
+}
+.moon-live.offline .moon-live-dot {
+  background: var(--sepia-light);
+  animation: none;
+}
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 1px; }
+/* ── Fade in ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.site-header  { animation: fadeUp 0.7s ease both; }
+.section      { animation: fadeUp 0.7s ease both; }
+.section:nth-child(2) { animation-delay: 0.1s; }
+.section:nth-child(3) { animation-delay: 0.2s; }
+.timeline-section { animation: fadeUp 0.7s 0.3s ease both; }
+.cta-row      { animation: fadeUp 0.7s 0.4s ease both; }
+.archive-section { animation: fadeUp 0.7s 0.5s ease both; }
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- ── Header ── -->
+  <header class="site-header">
+    <div class="header-sigil">☿ &nbsp;♀ &nbsp;☽ &nbsp;♂ &nbsp;♃</div>
+    <div class="wordmark">Dual Sunday Spell Drop<sup>™</sup></div>
+    <div class="tagline">Weekly strategy as ritual</div>
+    <div class="moon-ornament">
+      <div class="moon-ring">
+        <!-- thin SVG ring with zodiac tick marks -->
+        <svg viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="70" cy="70" r="62" stroke="#1c1814" stroke-opacity="0.1" stroke-width="0.75"/>
+          <circle cx="70" cy="70" r="54" stroke="#1c1814" stroke-opacity="0.06" stroke-width="0.5"/>
+          <!-- 12 tick marks (zodiac positions) -->
+          <g stroke="#1c1814" stroke-opacity="0.2" stroke-width="0.75">
+            <line x1="70" y1="8" x2="70" y2="16"/>
+            <line x1="101.12" y1="16.88" x2="95.46" y2="23.68"/>
+            <line x1="124.12" y1="47.88" x2="116.54" y2="51.75"/>
+            <line x1="132" y1="70" x2="124" y2="70"/>
+            <line x1="124.12" y1="92.12" x2="116.54" y2="88.25"/>
+            <line x1="101.12" y1="115.12" x2="95.46" y2="108.32"/>
+            <line x1="70" y1="132" x2="70" y2="124"/>
+            <line x1="38.88" y1="115.12" x2="44.54" y2="108.32"/>
+            <line x1="15.88" y1="92.12" x2="23.46" y2="88.25"/>
+            <line x1="8" y1="70" x2="16" y2="70"/>
+            <line x1="15.88" y1="47.88" x2="23.46" y2="51.75"/>
+            <line x1="38.88" y1="16.88" x2="44.54" y2="23.68"/>
+          </g>
+          <!-- cardinal glyphs -->
+          <text x="70" y="5.5" text-anchor="middle" font-family="serif" font-size="5" fill="#1c1814" fill-opacity="0.25">♈</text>
+          <text x="135" y="72" text-anchor="middle" font-family="serif" font-size="5" fill="#1c1814" fill-opacity="0.25">♋</text>
+          <text x="70" y="140" text-anchor="middle" font-family="serif" font-size="5" fill="#1c1814" fill-opacity="0.25">♎</text>
+          <text x="5" y="72" text-anchor="middle" font-family="serif" font-size="5" fill="#1c1814" fill-opacity="0.25">♑</text>
+        </svg>
+        <div class="moon-center" id="moonGlyph">🌕</div>
+      </div>
+      <div class="moon-phase-name" id="moonPhaseName">—</div>
+      <div class="moon-sub" id="moonSub"></div>
+      <div class="moon-date" id="moonDate"></div>
+      <div class="moon-live" id="moonLive">
+        <span class="moon-live-dot"></span>
+        <span id="moonLiveLabel">fetching live data</span>
+      </div>
+    </div>
+    <p class="header-manifesto">
+      Sunday is not rest. It is reconnaissance.<br>
+      Morning you set the bearing. Evening you read the evidence.
+    </p>
+  </header>
+  <!-- ── AM Section ── -->
+  <section class="section">
+    <div class="section-header">
+      <span class="section-glyph">☉</span>
+      <span class="section-title">Morning Power Set</span>
+      <span class="section-ornament">♈ · ♌ · ♐</span>
+    </div>
+    <div class="prompt-grid">
+      <div>
+        <div class="prompt-block">
+          <span class="prompt-label">What's the move this week? State it like you already own it.</span>
+          <textarea id="amMission" placeholder="I am closing, launching, finishing…" rows="3"></textarea>
+        </div>
+        <div class="prompt-block">
+          <span class="prompt-label">Your anchor. One action that carries the whole week.</span>
+          <textarea id="amAnchor" placeholder="The daily non-negotiable…" rows="3"></textarea>
+        </div>
+      </div>
+      <div>
+        <div class="prompt-block">
+          <span class="prompt-label">What signal or pattern are you watching this week?</span>
+          <textarea id="amSignal" placeholder="The thing beneath the thing…" rows="3"></textarea>
+        </div>
+        <div class="prompt-block">
+          <span class="prompt-label">The question you want your subconscious to work on.</span>
+          <textarea id="amQuestion" placeholder="Overnight brief for the deeper mind…" rows="3"></textarea>
+        </div>
+      </div>
+    </div>
+  </section>
+  <div class="ornament">· · ·</div>
+  <!-- ── PM Section ── -->
+  <section class="section">
+    <div class="section-header">
+      <span class="section-glyph">☽</span>
+      <span class="section-title">Evening Integration</span>
+      <span class="section-ornament">♏ · ♓ · ♋</span>
+    </div>
+    <div class="prompt-grid">
+      <div>
+        <div class="prompt-block">
+          <span class="prompt-label">Resources that moved this week. Be specific — client interest, money, opportunity, offer.</span>
+          <textarea id="pmResources" placeholder="What actually flowed toward you…" rows="3"></textarea>
+        </div>
+        <div class="prompt-block">
+          <span class="prompt-label">Visibility audit. Who now knows what you do?</span>
+          <textarea id="pmVisibility" placeholder="Introduction, post, quiet word-of-mouth…" rows="3"></textarea>
+        </div>
+      </div>
+      <div>
+        <div class="prompt-block">
+          <span class="prompt-label">How did this week bridge to who you're becoming?</span>
+          <textarea id="pmBridge" placeholder="Evidence that the trajectory is real…" rows="3"></textarea>
+        </div>
+        <div class="prompt-block">
+          <span class="prompt-label">What do you understand now that you didn't on Sunday morning?</span>
+          <textarea id="pmLearning" placeholder="The week's real lesson…" rows="3"></textarea>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- ── Moon Timeline ── -->
+  <section class="timeline-section">
+    <div class="section-header">
+      <span class="section-glyph">☽</span>
+      <span class="section-title">Lunar Arc — This Week</span>
+    </div>
+    <div class="timeline-strip" id="timelineGrid">
+      <div style="grid-column:1/-1;text-align:center;padding:1.5rem;font-family:'IM Fell English',serif;font-style:italic;font-size:0.9rem;color:var(--sepia-light);">Consulting the moon…</div>
+    </div>
+  </section>
+  <!-- ── Save ── -->
+  <div class="cta-row">
+    <button class="btn-save" onclick="saveRitual('AM')">☉ &nbsp; Seal Morning Drop</button>
+    <button class="btn-save" onclick="saveRitual('PM')">☽ &nbsp; Seal Evening Drop</button>
+  </div>
+  <!-- ── Archive ── -->
+  <section class="archive-section">
+    <div class="archive-controls">
+      <div class="section-header" style="margin-bottom:0;border-bottom:none;padding-bottom:0">
+        <span class="section-glyph">♄</span>
+        <span class="section-title">Archive</span>
+      </div>
+      <button class="btn-clear" onclick="clearArchive()">Clear all</button>
+    </div>
+    <div id="archiveList"></div>
+  </section>
+  <footer class="site-footer">
+    Moon phases calculated astronomically — no API, no network required, works everywhere.<br>
+    Your spell drops live only on this device. No servers, no surveillance.<br><br>
+    <span style="letter-spacing:0.05em;">Built for the Sunday witch who also has a spreadsheet.</span>
+  </footer>
+</div>
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+<script>
+/* ─── Moon calculation (no API needed) ──────────── */
+// Synodic period & reference new moon: Jan 6 2000 18:14 UTC
+const SYNODIC = 29.53058867;
+const REF_NEW_MOON = new Date('2000-01-06T18:14:00Z').getTime();
+function getMoonPhaseValue(date) {
+  const elapsed = date.getTime() - REF_NEW_MOON;
+  const days    = elapsed / 86400000;
+  let   phase   = (days % SYNODIC) / SYNODIC;
+  if (phase < 0) phase += 1;
+  return phase;
+}
+function getMoonIllumination(phase) {
+  return Math.round((1 - Math.cos(phase * 2 * Math.PI)) / 2 * 100);
+}
+const PHASES = [
+  { min:0,    max:0.025, g:'🌑', n:'New Moon' },
+  { min:0.025,max:0.26,  g:'🌒', n:'Waxing Crescent' },
+  { min:0.26, max:0.28,  g:'🌓', n:'First Quarter' },
+  { min:0.28, max:0.48,  g:'🌔', n:'Waxing Gibbous' },
+  { min:0.48, max:0.52,  g:'🌕', n:'Full Moon' },
+  { min:0.52, max:0.72,  g:'🌖', n:'Waning Gibbous' },
+  { min:0.72, max:0.74,  g:'🌗', n:'Last Quarter' },
+  { min:0.74, max:0.975, g:'🌘', n:'Waning Crescent' },
+  { min:0.975,max:1,     g:'🌑', n:'New Moon' }
+];
+const getMoon = p => PHASES.find(x => p >= x.min && p < x.max) || PHASES[4];
+const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+function loadMoon() {
+  const now = new Date();
+  const p0  = getMoonPhaseValue(now);
+  const m   = getMoon(p0);
+  document.getElementById('moonGlyph').textContent    = m.g;
+  document.getElementById('moonPhaseName').textContent = m.n;
+  document.getElementById('moonSub').textContent      = `${getMoonIllumination(p0)}% illuminated`;
+  document.getElementById('moonDate').textContent     =
+    now.toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  document.getElementById('moonLiveLabel').textContent = 'calculated · updates on page load';
+  const grid = document.getElementById('timelineGrid');
+  grid.innerHTML = '';
+  for (let i = 0; i < 7; i++) {
+    const day = new Date(now.getTime() + i * 86400000);
+    const mi  = getMoon(getMoonPhaseValue(day));
+    const el  = document.createElement('div');
+    el.className = `timeline-day${i === 0 ? ' today' : ''}`;
+    el.title     = mi.n;
+    el.innerHTML = `
+      <div class="tday-name">${DAYS[day.getDay()]}</div>
+      <div class="tday-num">${day.getDate()}</div>
+      <div class="tday-moon">${mi.g}</div>`;
+    grid.appendChild(el);
+  }
+}
+/* ─── Toast ─────────────────────────────────────── */
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+/* ─── Save ──────────────────────────────────────── */
+const FIELDS = {
+  AM: ['amMission','amAnchor','amSignal','amQuestion'],
+  PM: ['pmResources','pmVisibility','pmBridge','pmLearning']
+};
+const LABELS = {
+  amMission:'Mission',amAnchor:'Anchor',amSignal:'Signal',amQuestion:'Question',
+  pmResources:'Resources',pmVisibility:'Visibility',pmBridge:'Bridge',pmLearning:'Learning'
+};
+function saveRitual(type) {
+  const vals = FIELDS[type].map(id=>document.getElementById(id).value.trim());
+  if (vals.every(v=>!v)) { toast('Nothing to seal — write something first.'); return; }
+  const entry = {
+    type, date: new Date().toLocaleDateString('en-GB'), timestamp: Date.now(),
+    data: Object.fromEntries(FIELDS[type].map((id,i)=>[id,vals[i]]))
+  };
+  const arch = JSON.parse(localStorage.getItem('spellDropArchive')||'[]');
+  arch.unshift(entry);
+  localStorage.setItem('spellDropArchive', JSON.stringify(arch));
+  FIELDS[type].forEach(id=>{ document.getElementById(id).value=''; });
+  localStorage.removeItem(`draft_${type}`);
+  toast(type==='AM' ? '☉  Morning drop sealed.' : '☽  Evening drop sealed.');
+  renderArchive();
+}
+/* ─── Archive ───────────────────────────────────── */
+function renderArchive() {
+  const arch = JSON.parse(localStorage.getItem('spellDropArchive')||'[]');
+  const el   = document.getElementById('archiveList');
+  if (!arch.length) {
+    el.innerHTML = '<div class="archive-empty">No drops sealed yet. Come back on Sunday.</div>';
+    return;
+  }
+  el.innerHTML = '';
+  arch.forEach(e => {
+    const div = document.createElement('div');
+    div.className = 'archive-entry';
+    const content = Object.entries(e.data||{}).filter(([,v])=>v)
+      .map(([k,v])=>`<strong>${LABELS[k]||k}:</strong> ${v}`).join('<br>');
+    div.innerHTML = `
+      <div class="entry-meta">
+        <span class="entry-date">${e.date}</span>
+        <span class="entry-badge ${e.type.toLowerCase()}">${e.type==='AM'?'☉ AM':'☽ PM'}</span>
+      </div>
+      <div class="entry-content">${content||'(empty)'}</div>`;
+    el.appendChild(div);
+  });
+}
+function clearArchive() {
+  if (!confirm('Clear the entire archive? This cannot be undone.')) return;
+  localStorage.removeItem('spellDropArchive');
+  renderArchive();
+  toast('Archive cleared.');
+}
+/* ─── Draft auto-save ───────────────────────────── */
+Object.entries(FIELDS).forEach(([type,ids])=>{
+  ids.forEach(id=>{
+    document.getElementById(id).addEventListener('input', ()=>{
+      const draft = {};
+      ids.forEach(i=>{ draft[i]=document.getElementById(i).value; });
+      localStorage.setItem(`draft_${type}`, JSON.stringify(draft));
+    });
+  });
+});
+function loadDrafts() {
+  ['AM','PM'].forEach(type=>{
+    const raw = localStorage.getItem(`draft_${type}`);
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    FIELDS[type].forEach(id=>{ if(document.getElementById(id)) document.getElementById(id).value=d[id]||''; });
+  });
+}
+/* ─── Init ──────────────────────────────────────── */
+loadMoon();
+loadDrafts();
+renderArchive();
+</script>
+</body>
+</html>
