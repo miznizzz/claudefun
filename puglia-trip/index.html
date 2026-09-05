@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Puglia — August/September 2026</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #F7F2EA; }
+#root { min-height: 100vh; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+<script type="text/babel">
+const { useState, useRef, useCallback } = React;
+
+const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap');`;
+
+const C = {
+  bari:"#0D4F6E", ostuni:"#C4724A", polignano:"#0A8A9E", home:"#5A7A6E",
+  sand:"#E8D5B0", linen:"#F7F2EA", shore:"#EDF5F8", ink:"#1C2B30",
+  muted:"#6B8590", border:"#D8E8EC", white:"#FDFAF6",
+  walkin:"#1A8A5A", book:"#C0472B", done:"#1A8A5A",
+};
+
+const BASES = [
+  { name:"Bari", nights:"Sat 29 – Sun 30 Aug", color:C.bari, dot:{x:52,y:28}, booked:false },
+  { name:"Ostuni", nights:"Mon 31 Aug – Wed 2 Sep", color:C.ostuni, dot:{x:44,y:62}, booked:true, hotel:"Maja Ostuni" },
+  { name:"Polignano", nights:"Thu 3 Sep", color:C.polignano, dot:{x:54,y:44}, booked:false },
+];
+
+// status: 'walkin' | 'booked' | 'optional'
+const DAYS = [
+  {
+    id:0, date:"29 Aug", day:"Saturday", label:"Land Late", emoji:"🛬", weather:{icon:"☀️",temp:"32°",desc:"Clear & hot"},
+    base:"Bari", baseColor:C.bari, baseLight:"#E8F3F8",
+    title:"Land Late & Crash", place:"Bari",
+    train:"Taxi from arrivals (24h rank, no booking) → hotel · ~20 min · the airport train stops at 23:33, so it's a cab tonight",
+    mood:"A brutal late landing. Straight to bed — the trip really starts tomorrow.",
+    sections:[
+      { icon:"🛬", head:"Midnight arrival", body:"Land around midnight. The airport train's finished for the night (last one's 23:33), so head straight out of arrivals to the 24h taxi rank — no need to book, ~20 min to the hotel, roughly €25–30 on the night rate (have cash). Or a pre-booked transfer if you'd rather not think." },
+      { icon:"🛏️", head:"Straight to sleep", body:"Don't try to salvage the night. Check in, collapse, let tomorrow be the real first day. Bari isn't going anywhere." },
+    ],
+    food:[{ name:"Nothing tonight — sleep", status:"walkin", note:"Your first panzerotti moves to tomorrow evening" }],
+    tip:"🚕 Taxi rank is just outside arrivals, left as you exit. Agree the fare's on the meter/fixed night rate before you set off. Cash is king in Bari cabs.",
+    links:[{ label:"Ferrotramviaria timetable", url:"https://www.ferrotramviaria.it" }],
+  },
+  {
+    id:1, date:"30 Aug", day:"Sunday", label:"Day 1", emoji:"🏛️", weather:{icon:"☀️",temp:"30°",desc:"Sunny"},
+    base:"Bari", baseColor:C.bari, baseLight:"#E8F3F8",
+    title:"A Full Day in Bari", place:"Bari Vecchia · Lungomare",
+    train:null, mood:"Walk slowly. Look up constantly.",
+    sections:[
+      { icon:"😴", head:"Sleep in — you earned it", body:"After a midnight landing, don't set an alarm. Start slow, big breakfast, ease into the day. Bari rewards a late, unhurried morning." },
+      { icon:"☀️", head:"Late morning — Bari Vecchia", body:"The Basilica di San Nicola — a great Romanesque church holding the actual bones of St Nicholas (of me, no less — your namesake's crypt, day one). The Castello Svevo. The 12th-century cathedral. All a short walk apart." },
+      { icon:"👵", head:"The orecchiette women", body:"Local women hand-roll orecchiette in their doorways in the narrow streets. Watch them work. Buy a bag to take home." },
+      { icon:"🐟", head:"Late morning — the fish market", body:"Near the old port. Some stalls serve crudo di mare right there — raw sea urchin, clams, mussels with lemon. A graze before lunch." },
+      { icon:"🍽️", head:"Lunch — Caffè del Borgo", body:"Booked ✓ On Piazza dell'Odegitria, right in front of the cathedral — one of the loveliest café settings in Bari Vecchia. Coffee, wine, pastries, proper food." },
+      { icon:"🌅", head:"Afternoon — Lungomare", body:"Bari's seafront promenade in the late afternoon light. Gelato. People-watching. Sea on one side, grand palazzi on the other." },
+      { icon:"🦑", head:"Evening — the first taste (finally)", body:"The panzerotti the delay stole from you: fried dough stuffed with mozzarella and tomato, hot from a fryer in the old town. Then wander Bari Vecchia lit up at night — narrow alleys, streetlamps, locals out for the passeggiata — down to the Lungomare seafront." },
+      { icon:"🍷", head:"Dinner", body:"Dinner at LA BEUAT — the cosy old-town spot you landed on. Orecchiette con braciole and a glass of Primitivo. (The Murattiano quarter's the backup for something quieter.)" },
+    ],
+    food:[
+      { name:"Sgagliozze & popizze — Largo Albicocca", status:"walkin", note:"EVENING — the Bari Vecchia fried-polenta tradition (Maria's square). Turn up at dusk, follow the crowd, cash, a couple of euros 🍟" },
+      { name:"Panzerotti", status:"walkin", note:"Evening — hot from a fryer, wander Bari Vecchia lit up" },
+      { name:"Caffè del Borgo", status:"booked", note:"Lunch · BOOKED ✓ · Piazza dell'Odegitria, in front of the cathedral" },
+      { name:"Fish-market crudo", status:"walkin", note:"Late-morning graze — raw & standing near the old port" },
+      { name:"LA BEUAT", status:"chosen", note:"Dinner — what we chose. Cosy old-town spot, orecchiette con braciole" },
+      { name:"Focaccia? Not today", status:"optional", note:"Santa Rita's closed Sundays — grab focaccia from Magda tomorrow at the station instead" },
+    ],
+    tip:"🎯 Pack tonight. You're heading south tomorrow with Monopoli as a lunch stop en route.",
+    optional:{
+      title:"Trani — half-day north",
+      body:"Train ~45 min up the coast. A luminous white Romanesque cathedral rising straight out of the sea, plus a Swabian castle. One of the loveliest cathedral settings in Italy — and barely on the tourist trail.",
+      access:"Trenitalia Bari → Trani · ~45 min · ⚠️ check times",
+      food:"Seafood lunch by the old harbour",
+    },
+    links:[],
+  },
+  {
+    id:2, date:"31 Aug", day:"Monday", label:"Day 2", emoji:"⚓", weather:{icon:"☀️",temp:"30°",desc:"Clear"},
+    base:"Ostuni", baseColor:C.ostuni, baseLight:"#FCF0EA",
+    title:"Monopoli & Ostuni", place:"Monopoli · Ostuni",
+    train:"Trenitalia · Bari → Monopoli → Ostuni",
+    mood:"Harbour town, then home to the White City.",
+    sections:[
+      { icon:"⚓", head:"Monopoli", body:"Working harbour, old town, Castello di Carlo V, a swim off the rocks. Lunch by the port." },
+      { icon:"🤍", head:"Into Ostuni", body:"Up the hill to Maja and the white maze. Cathedral terrace at golden hour, aperitivo in Piazza della Libertà." },
+      { icon:"🌇", head:"Dinner — Spessite ✓", body:"The tiny home-cooking spot with sunset views. Done and loved." },
+    ],
+    food:[
+      { name:"Spessite, Ostuni", status:"chosen", note:"Dinner ✓ — did it. Tiny, home-cooked, sunset views." },
+      { name:"Monopoli lunch — see Eating tab", status:"walkin", note:"La Locanda dei Mercanti / Coppino / Al Vicoletto" },
+    ],
+    tip:"✓ Piazzetta Cattedrale booking was cancelled (couldn't make it) — Spessite instead.",
+    links:[],
+  },
+  {
+    id:3, date:"1 Sep", day:"Tuesday", label:"Day 3", emoji:"✨", weather:{icon:"☀️",temp:"31°",desc:"Sunny"},
+    base:"Ostuni", baseColor:C.ostuni, baseLight:"#FCF0EA",
+    title:"Lecce — Baroque Capital", place:"Lecce · back to Ostuni",
+    train:"Trenitalia · Ostuni → Lecce ~45 min",
+    mood:"Golden stone and golden hours.",
+    sections:[
+      { icon:"☕", head:"Caffè leccese", body:"Espresso over ice with almond milk + a warm pasticciotto at Caffè Alvino on Piazza Sant'Oronzo." },
+      { icon:"🏛️", head:"The baroque", body:"Santa Croce's carved façade, Piazza del Duomo, the Roman amphitheatre. Golden hour in the piazza." },
+      { icon:"🍕", head:"Dinner back in Ostuni", body:"Aimed for Nonna Ia, missed the kitchen (they stop ~10) — pizza at Datterino Giallo instead. No regrets." },
+    ],
+    food:[
+      { name:"Datterino Giallo, Ostuni", status:"chosen", note:"Dinner ✓ — wood-fired pizza (the Nonna Ia backup)." },
+      { name:"Caffè Alvino, Lecce", status:"walkin", note:"Caffè leccese + pasticciotto, Piazza Sant'Oronzo" },
+      { name:"Lecce dinner — see Eating tab", status:"optional", note:"Le Zie, Tipico, Alle Due Corti, Dedo" },
+    ],
+    tip:"💡 Lesson: Italian kitchens stop ~10pm even if the room's open. Sit by 8:30, or WhatsApp \"siete ancora aperti?\" first.",
+    links:[],
+  },
+  {
+    id:4, date:"2 Sep", day:"Wednesday", label:"Day 4", emoji:"🚗", weather:{icon:"🥵",temp:"31°",desc:"Scorching"},
+    base:"Ostuni", baseColor:C.ostuni, baseLight:"#FCF0EA",
+    title:"Car Day — what actually happened", place:"Ostuni · Alberobello · San Vito · Francavilla Fontana",
+    train:"Rental car (manual) from Ostuni",
+    mood:"Too hot to plan. We just drove.",
+    sections:[
+      { icon:"🧀", head:"Morning — burrata first", body:"Caseificio Lacarbonara Donato before picking up the car. Watched them pull it, ate it an hour old, still warm. Best thing all trip. No notes." },
+      { icon:"🔮", head:"Alberobello — did it, hated it", body:"'Disneyland Puglia' — trinket shops and coach crowds. Glad we saw it, never again. Aia Piccola was the only bit with a pulse." },
+      { icon:"🏖️", head:"Beach — Spiaggia San Vito", body:"Bailed on the heat and hit the little cove by Polignano. The right call — swim, shade, cool off." },
+      { icon:"🏰", head:"Francavilla Fontana", body:"Stumbled into it on the drive back — the unscripted stop the plan never had. Imperiali castle, Baroque lanes." },
+      { icon:"🍽️", head:"Back late — Isola Poste", body:"Got in ~9pm, did not risk a kitchen closing, went to Isola Poste. Fine, not a favourite." },
+    ],
+    food:[
+      { name:"Burrata — Caseificio Lacarbonara Donato", status:"chosen", note:"Morning done — SO good. Fresh, warm, watch-them-pull-it. Trip highlight." },
+      { name:"Isola Poste, Ostuni", status:"chosen", note:"Dinner done — the 9pm safe pick. Did not love it, honestly." },
+    ],
+    tip:"🥵 The 'too hot to plan' day — skipped Locorotondo, Cisternino & Martina Franca (the plan), chased shade instead. Zero regrets.",
+    links:[],
+  },
+  {
+    id:5, date:"3 Sep", day:"Thursday", label:"Day 5", emoji:"🌊", weather:{icon:"🌬️",temp:"35°",desc:"Hot & breezy"},
+    base:"Polignano a Mare", baseColor:C.polignano, baseLight:"#E5F5F8",
+    title:"The Clifftop Finale", place:"Ostuni → Polignano a Mare",
+    train:"Ostuni → Polignano · ~1hr via Bari",
+    mood:"Your last night. Relaxed, delicious, by the sea.",
+    sections:[
+      { icon:"🎒", head:"Check out of Maja", body:"Morning checkout. Train north up the coast toward Bari, stopping at Polignano. Geography working perfectly in your favour." },
+      { icon:"🌊", head:"Arrive — the cliffs", body:"Check in. Walk the cliff path. Whitewashed town on limestone above the Adriatic. Lama Monachile beach below the rocks. Swim." },
+      { icon:"🚤", head:"Afternoon — private boat trip", body:"The literal boat out. A private cave-and-swim charter — Dorino Boating or MAMMAMIA (both 4.9) — ~90 min just the two of you: sea caves, jumping off the boat, prosecco & taralli at golden hour. Book the PRIVATE option, WhatsApp ahead." },
+      { icon:"🍽️", head:"A proper good dinner", body:"No splurge, just a genuinely lovely meal. Chichibio down by Lama Monachile or Casa Mia in the old town — both do fresh fish and handmade pasta, both relaxed, both walk-in." },
+      { icon:"🌙", head:"Last night in Puglia", body:"Slow evening in the alleys of Polignano. Yours in a way the daytime version never is." },
+    ],
+    food:[
+      { name:"Osteria di Chichibio", status:"walkin", note:"By Lama Monachile — refined, wild-caught fish. Often the best in town." },
+      { name:"La Locanda Porta Picc", status:"walkin", note:"Through the “small door” — bow-tie waiters, not-touristy, land & sea." },
+      { name:"Casa Mia Trattoria", status:"walkin", note:"Old-town, relaxed, broad menu (skip the sausage dishes)." },
+    ],
+    tip:"🌊 Both are walk-in and unpretentious. If you'd rather guarantee a table on your last night, a same-day DM to either does the trick — but you likely won't need it. ⚠️ Thu's forecast is hot with a gusty southerly — if it's blowing, the boat tour may be choppy or pulled, so check on the day and keep the cliff-path-and-swim as backup.",
+    links:[],
+  },
+  {
+    id:6, date:"4 Sep", day:"Friday", label:"Departure", emoji:"✈️", weather:{icon:"☀️",temp:"~32°",desc:"Clear"},
+    base:"Home", baseColor:C.home, baseLight:"#EDF3F1",
+    title:"Arrivederci, Puglia", place:"Polignano → Bari → London",
+    train:null, mood:"The best exit of any itinerary.",
+    sections:[
+      { icon:"🚂", head:"Easy exit", body:"Polignano to Bari is just 35 minutes — the best-positioned final stop. Ferrotramviaria to the airport. Budget 75 min total from Polignano station to the gate." },
+      { icon:"☕", head:"One last espresso", body:"Standing at the bar. Italian-style. 90 seconds, perfect." },
+      { icon:"✈️", head:"Home", body:"Gatwick. Grey skies. Already thinking about when to go back." },
+    ],
+    food:[{ name:"Final espresso, standing", status:"walkin", note:"At the bar, Italian-style" }],
+    tip:"✅ Only 35 min to Bari airport — you're the most relaxed person on your flight this morning.",
+    links:[],
+  },
+];
+
+const BOOKED = [
+  { name:"Osteria Piazzetta Cattedrale", town:"Ostuni", when:"Dinner · Mon 31 Aug · 7:30pm", color:C.ostuni },
+];
+
+const OPTIONAL = [
+  { name:"Chichibio / Casa Mia", town:"Polignano", when:"Last-night dinner · Thu 3 Sep", how:"Walk in, or same-day DM if you want to be sure", color:C.polignano },
+  { name:"La Vecchia Terrazza", town:"Ostuni", when:"Dinner · Tue 1 Sep", how:"Walk in, or same-day DM · terrace", color:C.ostuni },
+  { name:"Alle Due Corti", town:"Lecce", when:"Lunch · Wed 2 Sep", how:"Walk in, or same-morning DM", color:C.ostuni },
+  { name:"Osteria Perricci", town:"Monopoli", when:"Lunch · Mon 31 Aug", how:"Walk in, or day-before DM", color:C.bari },
+];
+
+const WALKINS = [
+  { name:"Bari fish-market crudo", when:"Sun 30 Aug lunch" },
+  { name:"Al Pescatore / La Uascezze, Bari", when:"Sat 29 Aug dinner" },
+  { name:"Cisternino fornello pronto", when:"Tue 1 Sep lunch — unbookable 🥩" },
+  { name:"Chichibio / Casa Mia, Polignano", when:"Thu 3 Sep dinner" },
+  { name:"Final espresso", when:"Fri 4 Sep, at the bar" },
+];
+
+const TODO = [
+  { label:"Bari hotel — near Bari Vecchia", done:true, note:"Booked ✓" },
+  { label:"Polignano hotel — last night", done:true, note:"Booked ✓" },
+  { label:"Piazzetta Cattedrale dinner", done:true, note:"Booked ✓ · 7:30pm Mon 31 Aug" },
+  { label:"Download apps: Trenitalia, FSE, WhatsApp, offline Maps", note:"fseonline.it for the valley trains" },
+  { label:"Flight check-in + baggage allowance", note:"Opens ~24–48h before" },
+  { label:"EU adapter + high-SPF sunscreen", note:"Italy = two round pins" },
+  { label:"Bank / card fees / get euros", note:"Cash for Egnazia museum, fornello, beach clubs" },
+  { label:"Save itinerary offline + travel insurance", note:"" },
+];
+
+const PACKING = [
+  { cat:"Dresses-led capsule", emoji:"👗", items:["5–6 dresses (3 easy daytime, 2 dressier, 1 nice for Piazzetta Cattedrale)","1 midi skirt + 3–4 tops to remix","Light linen shirt / kimono (sun, breeze, covered shoulders for churches)","1 evening layer — knit or wrap (sea breeze, train AC)","Undies ×7, bralettes, sleepwear"] },
+  { cat:"Shoes", emoji:"👡", items:["Broken-in walking sandals (Ostuni's hills & cobbles)","1 dressier block heel / nice flat (no stilettos — cobbles!)","Slides for pool & beach"] },
+  { cat:"Sea & beach", emoji:"🌊", items:["1–2 swimsuits + cover-up","Water shoes (Lama Monachile & the coves are rocky)","Beach tote + quick-dry towel"] },
+  { cat:"Sun & health", emoji:"☀️", items:["Sunhat, sunglasses, aftersun","Blister plasters (cobbles!)","Any meds + evening insect repellent"] },
+  { cat:"Tech", emoji:"🔌", items:["EU adapter (two round pins)","Portable charger","Reusable water bottle for the fountains"] },
+  { cat:"Docs & money", emoji:"📄", items:["Passport (3+ months validity)","Hotel confirmations + boarding passes","Cards + cash (several spots are cash-only)"] },
+  { cat:"Bag strategy", emoji:"🎒", items:["Soft/backpack bag beats a wheelie (cobbles, station steps, left-luggage days)","Crossbody / packable day bag for daytrips"] },
+];
+
+const SKINCARE = {
+  note:"Verified clean in your skincare chat — folded in here so it's one bag list.",
+  items:[
+   "LRP Toleriane cleanser",
+   "Avène Thermal Water (mini)",
+   "LRP Micellar (to remove tinted SPF properly)",
+   "The Ordinary HA 2% + B5",
+   "COSRX HA Cream (AM + PM)",
+   "Cicaplast B5 (flare / reset insurance)",
+   "Vit C — HERcosmetics (AM, calm days only)",
+   "Lip SPF",
+   "Antihistamines (the food's the flare risk, not the sky)",
+   "Gua sha (optional — heat de-puff)",
+  ],
+  decision:"Pick ONE face SPF — Bioderma Photoderm Cover Touch or Naked Sundays CabanaGlow. Both tinted mineral, both verified clean. Don't pack both.",
+};
+
+const FOOD_BY_PLACE = [
+  { town:"Bari", color:C.bari, items:[
+    { name:"LA BEUAT", status:"chosen", note:"Dinner (Sun) ✓ — did it. Cosy old-town; orecchiette con braciole." },
+    { name:"Caffè del Borgo", status:"chosen", note:"Lunch (Sun) ✓ — cathedral-front café, Piazza dell'Odegitria." },
+    { name:"Bahari", status:"optional", note:"Deep cut — modern-creative Pugliese, Murat quarter, 5.0. Assassina. Closed Mon." },
+    { name:"Wine Bar Tranquillo", status:"optional", note:"Tiny owner-run wine bar, Strada del Carmine." },
+    { name:"Dal Barese", status:"optional", note:"Piazza Mercantile, family-run — carciofi sott'olio, orecchiette al ragù." },
+    { name:"Old Tbilisi", status:"optional", note:"Wildcard — proper Georgian (khinkali, khachapuri)." },
+    { name:"Cantina dello Zio / Antò", status:"walkin", note:"Famous pair — cracking assassina but 15k-review tourist machines." },
+    { name:"Al Pescatore", status:"walkin", note:"Best fish in Bari, faces the castle. Crudo, spaghetti al polpo." },
+    { name:"Focaccia — Magda", status:"walkin", note:"By the station — grab a kilo heading south." },
+    { name:"Bakery Santa Rita", status:"walkin", note:"Legendary focaccia. ⚠️ Closed Sundays." },
+    { name:"Sgagliozze & popizze — Largo Albicocca", status:"walkin", note:"Evening street food — fried polenta (Maria's square)." },
+    { name:"Panzerotti / fish-market crudo", status:"walkin", note:"Fried dough & raw seafood — grazing in Bari Vecchia." },
+  ]},
+  { town:"Monopoli", color:C.bari, items:[
+    { name:"La Locanda dei Mercanti", status:"walkin", note:"Buzzy local seafood favourite. Lunch 12:30–2:30 — arrive ~12:20, it queues." },
+    { name:"Coppino", status:"walkin", note:"Best orecchiette in town, casual, all-day, easy walk-in." },
+    { name:"Al Vicoletto — Cucina di Casa", status:"walkin", note:"Home cooking, seafood pasta-for-two, Tris di Burrata. Reserve for outside." },
+    { name:"Pugliami", status:"walkin", note:"Killer raw seafood platter, orecchiette con cime di rapa." },
+    { name:"Osteria Perricci", status:"optional", note:"Family-run harbour seafood." },
+  ]},
+  { town:"Fasano", color:C.ostuni, items:[
+    { name:"Silvè — “Maria the dirty lady”", status:"optional", note:"Mother-and-son, 8 tables, no menu — Maria cooks what she likes. A detour, but a cult one." },
+  ]},
+  { town:"Ostuni", color:C.ostuni, items:[
+    { name:"Spessite", status:"chosen", note:"Dinner ✓ — did it. Tiny, home-cooked, sunset views. (Closed Weds.)" },
+    { name:"Datterino Giallo", status:"chosen", note:"Pizza ✓ — did it. Wood-fired, the late-night Nonna Ia backup." },
+    { name:"Isola Poste", status:"chosen", note:"Dinner done — the 9pm safe pick. Did not love it." },
+    { name:"Osteria Da Nonna Ia", status:"optional", note:"The one that got away — Grandma Ia's under a palazzo, cheap & traditional. Go EARLY.." },
+    { name:"Trattoria Sapere e Sapori", status:"optional", note:"Cobbled side street, cosy, live guitar, generous & reasonable. Great orecchiette. Closed Wed." },
+    { name:"Osteria Nascosta", status:"optional", note:"The 'hidden osteria', Via Campanaro, Chef Roberto, standout risotto." },
+    { name:"Osteria Ricanatti", status:"optional", note:"4.7, tiny, chef-owner, great-value creative Salento. Closed Sun." },
+    { name:"Osteria CasaCiaccia", status:"optional", note:"Nonna-Ciaccia home cooking, romantic terrace, house limoncello." },
+    { name:"Casa San Giacomo", status:"walkin", note:"Cellar rooms of an old house, small menu done well, fast kitchen." },
+    { name:"Il Posto Affianco", status:"walkin", note:"Rooftop terrace views, sausage & red-wine fettuccine, pizza. Popular." },
+    { name:"Borgo Antico Bistrot", status:"optional", note:"Terrace over the White City, cheese platters. No bookings, go before 7pm." },
+    { name:"Suavis Brace e Cucina", status:"optional", note:"4.9 grill house — steak & seafood. ⚠️ Closed Tue." },
+    { name:"Acquasanta dispensa e vino", status:"optional", note:"Cave wine bar, 6-glass pairing. ⚠️ Closed Tue." },
+    { name:"Doppio Gusto", status:"walkin", note:"Tiny — legendary octopus-stracciatella sandwich." },
+    { name:"Burrata: Caseificio Lacarbonara Donato", status:"chosen", note:"Did it — SO good. Fresh, warm, watch-them-pull-it. Trip highlight." },
+    { name:"Osteria del Tempo Perso", status:"walkin", note:"Cave-oven, iconic but pricey & rushed two-sittings." },
+    { name:"Piazzetta Cattedrale", status:"optional", note:"Michelin Bib Gourmand — booking was cancelled, rebook if you fancy it." },
+  ]},
+  { town:"Valle d'Itria (car day)", color:C.ostuni, items:[
+    { name:"Zio Pietro fornello, Cisternino", status:"walkin", note:"Butcher-grill — order at the counter, grilled on coals. Lamb/sausage; bombette pork 🥩" },
+    { name:"Trattoria Bère Vecchie, Cisternino", status:"walkin", note:"Open daily · antipasto della casa, incredible lamb chops." },
+  ]},
+  { town:"Lecce", color:C.ostuni, items:[
+    { name:"Le Zie — Trattoria Casereccia", status:"optional", note:"Nonna's-front-room home cooking, most authentic in Lecce, cheap. Dinner 8–10:30, book." },
+    { name:"Tipico", status:"optional", note:"5.0, cave room, authentic Salento + assassina. Small, book." },
+    { name:"Alle Due Corti", status:"optional", note:"Heritage — ciceri e tria & orecchiette, record player.." },
+    { name:"Dedo Osteria", status:"optional", note:"Creative seafood, off the tourist drag, great value. Closed Wed." },
+    { name:"Santavoglia", status:"optional", note:"Creative chef Antonio, tasting menu, hidden. Book." },
+    { name:"Osteria 203", status:"walkin", note:"⚠️ Temporarily closed." },
+    { name:"Caffè Alvino", status:"walkin", note:"Caffè leccese, pasticciotto, rustico. Piazza Sant'Oronzo, open late." },
+  ]},
+  { town:"Polignano a Mare", color:C.polignano, items:[
+    { name:"Private boat trip — Dorino / MAMMAMIA", status:"optional", note:"The literal boat out — private cave-and-swim charter, prosecco at sunset. 4.9. WhatsApp ahead." },
+    { name:"Osteria di Chichibio", status:"walkin", note:"By Lama Monachile — refined, wild-caught fish. Best in town." },
+    { name:"La Locanda Porta Picc", status:"walkin", note:"Bow-tie waiters, not-touristy, land & sea." },
+    { name:"Casa Mia Trattoria", status:"walkin", note:"Relaxed old-town, seafood pasta (skip the sausage)." },
+  ]},
+];
+
+const NEXT_TIME = [
+  { cat:"The big one", emoji:"🪨", color:C.ostuni, items:[
+    { name:"Matera", note:"The cave city in Basilicata, carved into a ravine — unlike anywhere in Europe. Cut early for being too far without a car. Deserves its own trip (2–3 nights)." },
+  ]},
+  { cat:"Puglia, unfinished", emoji:"🫒", color:C.polignano, items:[
+    { name:"Cisternino fornello pronto", note:"The butcher-grill lunch — pick your meat, they grill it on coals. The one food moment that got away (twice)." },
+    { name:"Egnazia", note:"Messapian-Greek-Roman ruins running along the shoreline, plus the original Via Traiana stones. History-you would have loved it." },
+    { name:"Otranto", note:"Salento's turquoise: the cathedral's 12th-c Tree of Life floor mosaic, the chapel of 800 martyrs' skulls, soft sand by the old town." },
+    { name:"A masseria long lunch", note:"Il Frantoio near Ostuni — the multi-course estate lunch in the olive groves. The quintessential Puglia thing you skipped (needed a car early on)." },
+    { name:"Locorotondo & Martina Franca", note:"The calmer, prettier trulli towns you traded for Alberobello-the-theme-park. Do these instead." },
+    { name:"Torre Guaceto", note:"The pristine WWF reserve beach — swapped for lidos in the heat. Go on a cooler day, bring water." },
+  ]},
+  { cat:"Tables we never reached", emoji:"🍽️", color:C.bari, items:[
+    { name:"Bahari, Bari", note:"The 5.0 modern-creative Pugliese gem in the Murat quarter. Assassina people cross town for." },
+    { name:"Silvè, Fasano", note:"“Maria the dirty lady” — no menu, Maria cooks whatever she feels like. A cult table." },
+    { name:"The Lecce shortlist", note:"Tipico, Santavoglia, Dedo — the gems you scoped but didn't get to." },
+  ]},
+  { cat:"A whole other trip", emoji:"🗡️", color:C.home, items:[
+    { name:"The Caravaggio fugitive trail", note:"Naples → Malta → Sicily — chase his last four years on the run, painting as a wanted man. Your idea, still waiting." },
+  ]},
+];
+
+const css = `
+${FONTS}
+* { box-sizing:border-box; margin:0; padding:0; }
+body { background:${C.linen}; }
+.pf{font-family:'Playfair Display',serif;} .cg{font-family:'Cormorant Garamond',serif;} .dm{font-family:'DM Sans',sans-serif;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+@keyframes shimmer{0%,100%{opacity:.6}50%{opacity:1}}
+.enter{animation:fadeUp .35s ease forwards;}
+.card{transition:transform .2s,box-shadow .2s;}
+.card:hover{transform:translateY(-2px);box-shadow:0 10px 32px rgba(13,79,110,.10);}
+.pill{transition:all .2s;cursor:pointer;} .pill:hover{opacity:.8;}
+.lnk{transition:all .2s;} .lnk:hover{transform:translateY(-1px);}
+.nb{transition:all .2s;} .nb:hover:not(:disabled){filter:brightness(.9);transform:translateY(-1px);} .nb:disabled{opacity:.3;cursor:not-allowed;}
+::-webkit-scrollbar{width:3px;height:3px;} ::-webkit-scrollbar-thumb{background:${C.border};border-radius:3px;}
+`;
+
+const Wave = ({ fill }) => (
+  <div style={{ lineHeight:0 }}>
+    <svg viewBox="0 0 1440 40" preserveAspectRatio="none" style={{ display:"block", width:"100%", height:40 }}>
+      <path d="M0,20 C360,40 1080,0 1440,20 L1440,40 L0,40 Z" fill={fill} />
+    </svg>
+  </div>
+);
+
+function FoodBadge({ status }) {
+  const map = {
+    walkin: { bg:"#E6F5EC", fg:C.walkin, label:"🟢 Walk-in" },
+    booked: { bg:"#E6F5EC", fg:C.done, label:"✓ Booked" },
+    optional:{ bg:"#FBF3E5", fg:"#B07B2E", label:"◐ Optional" },
+    chosen:{ bg:"#FBF1D6", fg:"#B8860B", label:"⭐ Our pick" },
+  };
+  const s = map[status] || map.walkin;
+  return (
+    <span className="dm" style={{ display:"inline-flex", alignItems:"center", gap:4, background:s.bg, color:s.fg, border:`1px solid ${s.fg}40`, borderRadius:100, padding:"2px 9px", fontSize:10, fontWeight:500, letterSpacing:".05em", textTransform:"uppercase", whiteSpace:"nowrap", flexShrink:0 }}>{s.label}</span>
+  );
+}
+
+function RouteMap({ highlight }) {
+  return (
+    <svg viewBox="0 0 100 100" style={{ width:"100%", maxWidth:260, display:"block", margin:"0 auto" }}>
+      <path d="M30,10 Q55,8 70,20 Q82,32 78,50 Q74,65 60,75 Q50,82 45,90 Q40,95 38,92 Q36,88 40,82 Q44,76 42,70 Q38,62 30,58 Q20,52 18,42 Q16,30 22,20 Z" fill="#E0EEF4" stroke="#B8D4DE" strokeWidth=".5" />
+      <text x="74" y="46" fontSize="3.5" fill="#8BAEBB" fontFamily="Georgia,serif" fontStyle="italic">Adriatic</text>
+      <polyline points={`${BASES[0].dot.x},${BASES[0].dot.y} ${BASES[2].dot.x},${BASES[2].dot.y} ${BASES[1].dot.x},${BASES[1].dot.y} ${BASES[2].dot.x},${BASES[2].dot.y}`} fill="none" stroke={C.sand} strokeWidth=".9" strokeDasharray="2,1.5" opacity=".9" />
+      {BASES.map((b,i) => {
+        const active = highlight === b.name;
+        return (
+          <g key={i}>
+            {active && <circle cx={b.dot.x} cy={b.dot.y} r="7" fill={b.color} opacity=".18" />}
+            <circle cx={b.dot.x} cy={b.dot.y} r={active?4.5:3.2} fill={active?b.color:C.white} stroke={b.color} strokeWidth="1.5" style={{ transition:"all .3s" }} />
+            <text x={b.dot.x+(i===1?-13:5)} y={b.dot.y+(i===0?-4:i===2?4:1)} fontSize="4.2" fill={active?b.color:C.muted} fontFamily="'Playfair Display',serif" fontWeight={active?"700":"400"} style={{ transition:"all .3s" }}>{b.name}</text>
+          </g>
+        );
+      })}
+      <text x={BASES[0].dot.x-2} y={BASES[0].dot.y-7} fontSize="5">✈️</text>
+    </svg>
+  );
+}
+
+function PugliaApp() {
+  const [activeDay, setActiveDay] = useState(0);
+  const [tab, setTab] = useState("itinerary");
+  const [animKey, setAnimKey] = useState(0);
+  const [todoDone, setTodoDone] = useState(()=>Object.fromEntries(TODO.map((t,i)=>[i, t.done||false])));
+  const touchX = useRef(null);
+  const day = DAYS[activeDay];
+
+  const goTo = useCallback((i) => { if(i<0||i>=DAYS.length) return; setActiveDay(i); setAnimKey(k=>k+1); }, []);
+  const onTouchStart = e => { touchX.current = e.touches[0].clientX; };
+  const onTouchEnd = e => { if(touchX.current===null) return; const dx=e.changedTouches[0].clientX-touchX.current; if(Math.abs(dx)>50) goTo(activeDay+(dx<0?1:-1)); touchX.current=null; };
+
+  return (
+    <div style={{ minHeight:"100vh", background:C.linen, fontFamily:"'DM Sans',sans-serif" }}>
+      <style>{css}</style>
+
+      {/* HERO */}
+      <div style={{ background:`linear-gradient(175deg, ${C.bari} 0%, #0A3D55 45%, #0A6E7A 100%)`, padding:"56px 24px 0", position:"relative", overflow:"hidden" }}>
+        {[{t:"-30px",l:"-60px",w:300,h:260,c:"rgba(14,138,158,.25)"},{t:"10%",l:"60%",w:200,h:200,c:"rgba(232,213,176,.12)"},{t:"55%",l:"10%",w:180,h:180,c:"rgba(10,138,158,.18)"}].map((b,i)=>(
+          <div key={i} style={{ position:"absolute", top:b.t, left:b.l, width:b.w, height:b.h, borderRadius:"50%", background:`radial-gradient(circle,${b.c},transparent 70%)`, pointerEvents:"none" }} />
+        ))}
+        <div style={{ position:"relative", textAlign:"center", marginBottom:28 }}>
+          <div style={{ display:"flex", justifyContent:"center", gap:3, marginBottom:14 }}>
+            {[40,60,50,70,45].map((w,i)=>(<div key={i} style={{ height:1.5, width:w, borderRadius:2, background:`rgba(232,213,176,${.2+i*.1})`, animation:`shimmer ${1.5+i*.2}s ease-in-out infinite` }} />))}
+          </div>
+          <p className="dm" style={{ color:C.sand, letterSpacing:".35em", fontSize:10, textTransform:"uppercase", marginBottom:14 }}>A romantic escape · two of us</p>
+          <h1 className="pf" style={{ fontSize:"clamp(52px,14vw,92px)", fontWeight:700, fontStyle:"italic", color:C.white, lineHeight:.95, textShadow:"0 4px 32px rgba(0,0,0,.3)" }}>Puglia</h1>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:10, marginTop:14 }}>
+            <div style={{ height:1, width:36, background:"rgba(232,213,176,.35)" }} />
+            <p className="cg" style={{ color:C.sand, fontSize:15, fontStyle:"italic", letterSpacing:".1em" }}>29 August — 4 September</p>
+            <div style={{ height:1, width:36, background:"rgba(232,213,176,.35)" }} />
+          </div>
+        </div>
+        <div style={{ background:"rgba(255,255,255,.08)", backdropFilter:"blur(8px)", borderRadius:"20px 20px 0 0", padding:"24px 16px 20px", border:"1px solid rgba(255,255,255,.12)", borderBottom:"none" }}>
+          <RouteMap highlight={day.base} />
+          <div style={{ display:"flex", justifyContent:"center", gap:8, marginTop:14, flexWrap:"wrap" }}>
+            {BASES.map(b=>(
+              <div key={b.name} style={{ display:"flex", alignItems:"center", gap:6, background: day.base===b.name?`${b.color}35`:"rgba(255,255,255,.07)", border:`1px solid ${day.base===b.name?b.color+"80":"rgba(255,255,255,.12)"}`, borderRadius:100, padding:"5px 12px", transition:"all .3s" }}>
+                <div style={{ width:7, height:7, borderRadius:"50%", background:b.color }} />
+                <span className="dm" style={{ color: day.base===b.name?C.white:"rgba(255,255,255,.5)", fontSize:11 }}>{b.name}</span>
+                {b.booked && <span style={{ color:"#7DDBA8", fontSize:10 }}>✓</span>}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div style={{ background:"#0A6E7A" }}><Wave fill={C.white} /></div>
+
+      {/* TABS */}
+      <div style={{ background:C.white, borderBottom:`1px solid ${C.border}`, display:"flex", justifyContent:"center", position:"sticky", top:0, zIndex:50, boxShadow:"0 2px 16px rgba(13,79,110,.08)" }}>
+        {[{id:"itinerary",label:"📅 Itinerary"},{id:"route",label:"🗺 Route"},{id:"food",label:"🍽 Eating"},{id:"prep",label:"🧳 Prep"},{id:"next",label:"🔮 Next Time"}].map(t=>(
+          <button key={t.id} className="dm" onClick={()=>setTab(t.id)} style={{ border:"none", background:"none", padding:"14px 18px", cursor:"pointer", borderBottom: tab===t.id?`2.5px solid ${C.bari}`:"2.5px solid transparent", color: tab===t.id?C.bari:C.muted, fontSize:12, letterSpacing:".06em", fontWeight: tab===t.id?500:400, whiteSpace:"nowrap" }}>{t.label}</button>
+        ))}
+      </div>
+
+      {/* ITINERARY */}
+      {tab==="itinerary" && (<>
+        <div style={{ overflowX:"auto", background:C.white, padding:"12px", display:"flex", gap:8, borderBottom:`1px solid ${C.border}`, scrollbarWidth:"none" }}>
+          {DAYS.map((d,i)=>(
+            <button key={i} className="pill dm" onClick={()=>goTo(i)} style={{ border:`1.5px solid ${activeDay===i?d.baseColor:C.border}`, background: activeDay===i?d.baseColor:C.linen, borderRadius:100, padding:"7px 16px", flexShrink:0, color: activeDay===i?C.white:C.muted, fontSize:12, fontWeight: activeDay===i?500:400, display:"flex", alignItems:"center", gap:6 }}>
+              <span>{d.emoji}</span><span>{d.label}</span><span style={{ opacity:.6, fontSize:10 }}>{d.date}</span>
+            </button>
+          ))}
+        </div>
+
+        <div key={animKey} className="enter" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} style={{ maxWidth:680, margin:"0 auto", padding:"20px 16px 48px" }}>
+          <div className="dm" style={{ display:"inline-flex", alignItems:"center", gap:6, background:`${day.baseColor}18`, border:`1px solid ${day.baseColor}35`, borderRadius:100, padding:"5px 14px", marginBottom:16, fontSize:11, color:day.baseColor, letterSpacing:".1em", textTransform:"uppercase" }}>📍 {day.base}</div>
+
+          <div style={{ background:`linear-gradient(135deg, ${day.baseColor} 0%, ${day.baseColor}CC 100%)`, borderRadius:24, padding:"28px 28px 24px", marginBottom:18, position:"relative", overflow:"hidden", boxShadow:`0 12px 48px ${day.baseColor}45` }}>
+            <div style={{ position:"absolute", bottom:0, left:0, right:0, height:60, opacity:.08, backgroundImage:"repeating-linear-gradient(90deg, transparent, transparent 20px, rgba(255,255,255,.8) 20px, rgba(255,255,255,.8) 21px)" }} />
+            <div style={{ position:"absolute", top:-20, right:-20, fontSize:100, opacity:.07, lineHeight:1 }}>{day.emoji}</div>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", flexWrap:"wrap", gap:8, marginBottom:12 }}>
+              <span className="dm" style={{ color:"rgba(255,255,255,.5)", fontSize:10, letterSpacing:".2em", textTransform:"uppercase" }}>{day.day} · {day.date}</span>
+              <div style={{ display:"flex", gap:6, alignItems:"center", flexWrap:"wrap" }}>
+                {day.weather && (
+                  <span className="dm" title="Forecast as of 26 Aug — firms up nearer the day" style={{ background:"rgba(255,255,255,.15)", borderRadius:100, padding:"3px 10px", fontSize:11, color:"rgba(255,255,255,.9)", display:"inline-flex", alignItems:"center", gap:4 }}>{day.weather.icon} {day.weather.temp} · {day.weather.desc}</span>
+                )}
+                <span className="dm" style={{ background:"rgba(255,255,255,.15)", borderRadius:100, padding:"3px 12px", fontSize:11, color:"rgba(255,255,255,.8)" }}>📍 {day.base}</span>
+              </div>
+            </div>
+            <h2 className="pf" style={{ color:C.white, fontSize:"clamp(22px,5vw,32px)", fontStyle:"italic", lineHeight:1.15, marginBottom:6 }}>{day.title}</h2>
+            <p className="cg" style={{ color:"rgba(255,255,255,.65)", fontSize:17, fontStyle:"italic", marginBottom: day.train?16:0 }}>{day.mood}</p>
+            {day.train && (<div className="dm" style={{ background:"rgba(0,0,0,.18)", borderRadius:10, padding:"9px 14px", fontSize:12, color:"rgba(255,255,255,.85)", display:"flex", alignItems:"center", gap:8 }}><span>🚂</span>{day.train}</div>)}
+          </div>
+
+          <div style={{ display:"flex", flexDirection:"column", gap:12, marginBottom:16 }}>
+            {day.sections.map((s,i)=>(
+              <div key={i} className="card" style={{ background:C.white, borderRadius:16, padding:"18px 20px", borderLeft:`3px solid ${day.baseColor}`, boxShadow:"0 2px 16px rgba(13,79,110,.06)" }}>
+                <div style={{ display:"flex", gap:14 }}>
+                  <span style={{ fontSize:22, flexShrink:0, marginTop:1 }}>{s.icon}</span>
+                  <div>
+                    <p className="dm" style={{ color:day.baseColor, fontWeight:500, fontSize:10, letterSpacing:".15em", textTransform:"uppercase", marginBottom:6 }}>{s.head}</p>
+                    <p className="cg" style={{ color:C.ink, fontSize:17, lineHeight:1.7 }}>{s.body}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {day.food && day.food.length > 0 && (
+            <div style={{ background:C.white, borderRadius:16, padding:"16px 18px", marginBottom:16, boxShadow:"0 2px 16px rgba(13,79,110,.06)", border:`1px solid ${day.baseColor}18` }}>
+              <p className="dm" style={{ color:day.baseColor, fontWeight:500, fontSize:10, letterSpacing:".15em", textTransform:"uppercase", marginBottom:12 }}>🍽 Where to eat</p>
+              <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                {day.food.map((f,i)=>(
+                  <div key={i} style={{ display:"flex", gap:10, alignItems:"flex-start", justifyContent:"space-between" }}>
+                    <div style={{ flex:1 }}>
+                      <p className="dm" style={{ color:C.ink, fontSize:13.5, fontWeight:500 }}>{f.name}</p>
+                      <p className="dm" style={{ color:C.muted, fontSize:11.5, marginTop:2, lineHeight:1.45 }}>{f.note}</p>
+                    </div>
+                    <FoodBadge status={f.status} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {day.tip && (<div style={{ background:day.baseLight, borderRadius:12, padding:"14px 18px", marginBottom:16, border:`1px solid ${day.baseColor}20` }}><p className="dm" style={{ color:C.ink, fontSize:13, lineHeight:1.6 }}>{day.tip}</p></div>)}
+
+          {day.optional && (
+            <div style={{ background:`repeating-linear-gradient(135deg, #FFFDF8, #FFFDF8 10px, #FCF8EE 10px, #FCF8EE 20px)`, borderRadius:16, padding:"18px 20px", marginBottom:16, border:`1.5px dashed ${C.sand}`, boxShadow:"0 2px 12px rgba(196,168,130,.12)" }}>
+              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
+                <span style={{ fontSize:18 }}>⚡</span>
+                <p className="dm" style={{ color:"#A67C2E", fontWeight:500, fontSize:10.5, letterSpacing:".18em", textTransform:"uppercase" }}>If you've got the energy</p>
+              </div>
+              <p className="pf" style={{ fontSize:18, fontStyle:"italic", color:C.ink, marginBottom:6 }}>{day.optional.title}</p>
+              <p className="cg" style={{ color:"#4A463E", fontSize:16, lineHeight:1.6, marginBottom:12 }}>{day.optional.body}</p>
+              <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                <div style={{ display:"flex", gap:8, alignItems:"flex-start" }}>
+                  <span style={{ fontSize:13, flexShrink:0 }}>🚂</span>
+                  <p className="dm" style={{ color:"#6B5D3E", fontSize:12, lineHeight:1.45 }}>{day.optional.access}</p>
+                </div>
+                {day.optional.food && (
+                  <div style={{ display:"flex", gap:8, alignItems:"flex-start" }}>
+                    <span style={{ fontSize:13, flexShrink:0 }}>🍽</span>
+                    <p className="dm" style={{ color:"#6B5D3E", fontSize:12, lineHeight:1.45 }}>{day.optional.food}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {day.links.length>0 && (
+            <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:20 }}>
+              {day.links.map((l,i)=>(<a key={i} href={l.url} target="_blank" rel="noopener noreferrer" className="lnk dm" style={{ display:"inline-flex", alignItems:"center", gap:6, background:C.white, border:`1px solid ${day.baseColor}40`, borderRadius:100, padding:"7px 16px", color:day.baseColor, fontSize:12, textDecoration:"none", boxShadow:"0 2px 8px rgba(13,79,110,.07)" }}>↗ {l.label}</a>))}
+            </div>
+          )}
+
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:12, marginTop:8 }}>
+            <button className="nb dm" disabled={activeDay===0} onClick={()=>goTo(activeDay-1)} style={{ background:day.baseColor, color:C.white, border:"none", borderRadius:12, padding:"12px 24px", fontSize:13, fontWeight:500, flex:1, maxWidth:140 }}>← Prev</button>
+            <div style={{ textAlign:"center" }}>
+              <div style={{ display:"flex", gap:5, justifyContent:"center" }}>
+                {DAYS.map((_,i)=>(<div key={i} onClick={()=>goTo(i)} style={{ width: activeDay===i?18:6, height:6, borderRadius:3, cursor:"pointer", background: activeDay===i?day.baseColor:C.border, transition:"all .3s" }} />))}
+              </div>
+              <p className="dm" style={{ color:C.muted, fontSize:10, marginTop:4 }}>swipe to navigate</p>
+            </div>
+            <button className="nb dm" disabled={activeDay===DAYS.length-1} onClick={()=>goTo(activeDay+1)} style={{ background:day.baseColor, color:C.white, border:"none", borderRadius:12, padding:"12px 24px", fontSize:13, fontWeight:500, flex:1, maxWidth:140 }}>Next →</button>
+          </div>
+        </div>
+      </>)}
+
+      {/* ROUTE */}
+      {tab==="route" && (
+        <div style={{ maxWidth:680, margin:"0 auto", padding:"28px 16px" }}>
+          <h2 className="pf" style={{ fontSize:28, fontStyle:"italic", color:C.ink, marginBottom:6 }}>Your route</h2>
+          <p className="cg" style={{ color:C.muted, fontSize:17, fontStyle:"italic", marginBottom:24 }}>South then back north. No doubling back.</p>
+          <div style={{ background:C.white, borderRadius:20, padding:"24px 16px", boxShadow:"0 4px 24px rgba(13,79,110,.08)", marginBottom:24 }}><RouteMap highlight={null} /></div>
+          <div style={{ position:"relative" }}>
+            <div style={{ position:"absolute", left:19, top:24, bottom:24, width:2, background:`linear-gradient(to bottom, ${C.bari}, ${C.ostuni}, ${C.polignano})`, opacity:.25 }} />
+            {[
+              { from:"Gatwick", to:"Bari", how:"Direct flight · ~3hrs", color:C.bari, icon:"✈️" },
+              { from:"Bari", to:"Monopoli & Ostuni", how:"Trenitalia (Sun–Mon)", color:C.ostuni, icon:"🚂" },
+              { from:"Ostuni", to:"Lecce & back", how:"Trenitalia · 45 min (Tue)", color:C.ostuni, icon:"🚂" },
+              { from:"Ostuni", to:"Valle d'Itria + beach", how:"Rental car · valley loop (Wed)", color:C.ostuni, icon:"🚗" },
+              { from:"Ostuni", to:"Polignano a Mare", how:"Trenitalia via Bari · ~1hr (Thu)", color:C.polignano, icon:"🚂" },
+              { from:"Polignano", to:"Bari airport", how:"Trenitalia · 35 min (Fri)", color:C.polignano, icon:"🚂" },
+              { from:"Bari", to:"Gatwick", how:"Direct flight · ~3hrs", color:C.home, icon:"✈️" },
+            ].map((r,i)=>(
+              <div key={i} style={{ display:"flex", gap:16, marginBottom:14, paddingLeft:8 }}>
+                <div style={{ width:24, height:24, borderRadius:"50%", background:r.color, display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, flexShrink:0, marginTop:2, zIndex:1, boxShadow:`0 0 0 3px ${C.linen}` }}>{r.icon}</div>
+                <div style={{ background:C.white, borderRadius:12, padding:"12px 16px", flex:1, boxShadow:"0 2px 8px rgba(13,79,110,.05)" }}>
+                  <p className="dm" style={{ fontSize:13, color:C.ink, fontWeight:500 }}>{r.from} → {r.to}</p>
+                  <p className="dm" style={{ fontSize:12, color:C.muted, marginTop:2 }}>{r.how}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* EATING — by location */}
+      {tab==="food" && (
+        <div style={{ maxWidth:680, margin:"0 auto", padding:"28px 16px" }}>
+          <h2 className="pf" style={{ fontSize:28, fontStyle:"italic", color:C.ink, marginBottom:6 }}>Eating, by place</h2>
+          <p className="cg" style={{ color:C.muted, fontSize:17, fontStyle:"italic", marginBottom:18 }}>Everywhere we weighed, and what we landed on. ⭐ our pick · ✓ booked · the rest we can walk into.</p>
+
+          {/* legend */}
+          <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:24 }}>
+            <FoodBadge status="chosen" />
+            <FoodBadge status="booked" />
+            <FoodBadge status="optional" />
+            <FoodBadge status="walkin" />
+          </div>
+
+          <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+            {FOOD_BY_PLACE.map((place,pi)=>(
+              <div key={pi} className="card" style={{ background:C.white, borderRadius:16, overflow:"hidden", boxShadow:"0 2px 16px rgba(13,79,110,.06)", borderTop:`4px solid ${place.color}` }}>
+                <div style={{ padding:"14px 18px 10px", display:"flex", alignItems:"center", gap:8 }}>
+                  <span style={{ width:9, height:9, borderRadius:"50%", background:place.color, flexShrink:0 }} />
+                  <p className="pf" style={{ fontSize:19, fontStyle:"italic", color:C.ink }}>{place.town}</p>
+                </div>
+                <div>
+                  {place.items.map((it,ii)=>(
+                    <div key={ii} style={{ padding:"12px 18px", borderTop:`1px solid ${C.border}`, display:"flex", gap:10, justifyContent:"space-between", alignItems:"flex-start" }}>
+                      <div style={{ flex:1 }}>
+                        <p className="dm" style={{ fontSize:13.5, fontWeight:500, color:C.ink }}>{it.name}</p>
+                        <p className="dm" style={{ fontSize:11.5, color:C.muted, marginTop:2, lineHeight:1.45 }}>{it.note}</p>
+                      </div>
+                      <FoodBadge status={it.status} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ marginTop:24, background:C.white, borderRadius:12, padding:"16px 18px", border:`1px solid ${C.border}` }}>
+            <p className="dm" style={{ fontSize:12, color:C.muted, lineHeight:1.6 }}>
+              💬 For the optional ones, an Instagram DM gets the fastest reply. "Buonasera! Tavolo per 2, [day] verso le 20:00?" does the whole job. No pork throughout — Puglian menus lean seafood & lamb, just sidestep bombette, capocollo and salami antipasti.
+            </p>
+          </div>
+
+          <p className="cg" style={{ textAlign:"center", color:C.muted, fontSize:15, fontStyle:"italic", marginTop:32, letterSpacing:".05em" }}>built with amore 🤍</p>
+        </div>
+      )}
+
+      {/* PREP */}
+      {tab==="prep" && (
+        <div style={{ maxWidth:680, margin:"0 auto", padding:"28px 16px" }}>
+          <h2 className="pf" style={{ fontSize:28, fontStyle:"italic", color:C.ink, marginBottom:6 }}>Before you fly</h2>
+          <p className="cg" style={{ color:C.muted, fontSize:17, fontStyle:"italic", marginBottom:28 }}>The list, the bag, the whole pre-trip brain-dump — in one place.</p>
+
+          {/* TO-DO */}
+          <p className="dm" style={{ color:C.bari, fontSize:10, letterSpacing:".2em", textTransform:"uppercase", marginBottom:12, fontWeight:500 }}>✅ To-do · tap to tick</p>
+          <div style={{ background:C.white, borderRadius:16, overflow:"hidden", boxShadow:"0 2px 16px rgba(13,79,110,.06)", marginBottom:32 }}>
+            {TODO.map((t,i)=>(
+              <div key={i} onClick={()=>setTodoDone(p=>({ ...p, [i]:!p[i] }))} style={{ display:"flex", gap:12, alignItems:"flex-start", padding:"14px 18px", cursor:"pointer", borderBottom: i<TODO.length-1?`1px solid ${C.border}`:"none", background: todoDone[i]?C.shore:(t.urgent&&!todoDone[i]?"#FDF1EE":C.white) }}>
+                <div style={{ width:22, height:22, borderRadius:6, flexShrink:0, marginTop:1, border:`2px solid ${todoDone[i]?C.walkin:(t.urgent?C.book:C.border)}`, background: todoDone[i]?C.walkin:"transparent", display:"flex", alignItems:"center", justifyContent:"center", transition:"all .2s" }}>{todoDone[i] && <span style={{ color:C.white, fontSize:13 }}>✓</span>}</div>
+                <div style={{ flex:1 }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
+                    <p className="dm" style={{ fontSize:14, fontWeight:500, color: todoDone[i]?C.muted:C.ink, textDecoration: todoDone[i]?"line-through":"none" }}>{t.label}</p>
+                    {t.urgent && !todoDone[i] && <span className="dm" style={{ fontSize:9, color:C.book, letterSpacing:".1em", textTransform:"uppercase", background:"#FBE4DE", padding:"2px 7px", borderRadius:100 }}>Urgent</span>}
+                  </div>
+                  {t.note && <p className="dm" style={{ fontSize:11.5, color:C.muted, marginTop:2, lineHeight:1.4 }}>{t.note}</p>}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* PACKING */}
+          <p className="dm" style={{ color:C.ostuni, fontSize:10, letterSpacing:".2em", textTransform:"uppercase", marginBottom:12, fontWeight:500 }}>🧳 Packing · dresses-led, car-free-light</p>
+          <div style={{ display:"flex", flexDirection:"column", gap:12, marginBottom:24 }}>
+            {PACKING.map((p,i)=>(
+              <div key={i} className="card" style={{ background:C.white, borderRadius:16, padding:"16px 18px", borderLeft:`4px solid ${C.ostuni}`, boxShadow:"0 2px 16px rgba(13,79,110,.06)" }}>
+                <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
+                  <span style={{ fontSize:20 }}>{p.emoji}</span>
+                  <p className="dm" style={{ fontSize:13, fontWeight:500, color:C.ink, letterSpacing:".03em" }}>{p.cat}</p>
+                </div>
+                <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                  {p.items.map((it,j)=>(
+                    <div key={j} style={{ display:"flex", gap:8, alignItems:"flex-start" }}>
+                      <span style={{ color:C.ostuni, fontSize:11, marginTop:3, flexShrink:0 }}>◦</span>
+                      <p className="dm" style={{ fontSize:13, color:"#3D3A36", lineHeight:1.5 }}>{it}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* SKINCARE */}
+          <div className="card" style={{ background:C.white, borderRadius:16, padding:"16px 18px", borderLeft:`4px solid ${C.polignano}`, boxShadow:"0 2px 16px rgba(13,79,110,.06)", marginBottom:12 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:6 }}>
+              <span style={{ fontSize:20 }}>🧴</span>
+              <p className="dm" style={{ fontSize:13, fontWeight:500, color:C.ink }}>Skincare kit</p>
+            </div>
+            <p className="dm" style={{ fontSize:11.5, color:C.muted, marginBottom:10, fontStyle:"italic" }}>{SKINCARE.note}</p>
+            <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+              {SKINCARE.items.map((it,j)=>(
+                <div key={j} style={{ display:"flex", gap:8, alignItems:"flex-start" }}>
+                  <span style={{ color:C.polignano, fontSize:11, marginTop:3, flexShrink:0 }}>◦</span>
+                  <p className="dm" style={{ fontSize:13, color:"#3D3A36", lineHeight:1.5 }}>{it}</p>
+                </div>
+              ))}
+            </div>
+            <div style={{ marginTop:12, padding:"10px 12px", background:C.shore, borderRadius:8, border:`1px dashed ${C.polignano}55` }}>
+              <p className="dm" style={{ fontSize:12, color:C.ink, lineHeight:1.5 }}><strong>One decision:</strong> {SKINCARE.decision}</p>
+            </div>
+          </div>
+
+          <p className="cg" style={{ textAlign:"center", color:C.muted, fontSize:15, fontStyle:"italic", marginTop:32, letterSpacing:".05em" }}>built with amore 🤍</p>
+        </div>
+      )}
+
+      {/* NEXT TIME */}
+      {tab==="next" && (
+        <div style={{ maxWidth:680, margin:"0 auto", padding:"28px 16px" }}>
+          <h2 className="pf" style={{ fontSize:28, fontStyle:"italic", color:C.ink, marginBottom:6 }}>Next time in the South</h2>
+          <p className="cg" style={{ color:C.muted, fontSize:17, fontStyle:"italic", marginBottom:28 }}>The file doesn't close — it just pauses. Here's what the South still owes you.</p>
+
+          {NEXT_TIME.map((group,gi)=>(
+            <div key={gi} style={{ marginBottom:28 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
+                <span style={{ fontSize:18 }}>{group.emoji}</span>
+                <p className="dm" style={{ color:group.color, fontSize:11, letterSpacing:".18em", textTransform:"uppercase", fontWeight:500 }}>{group.cat}</p>
+              </div>
+              <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                {group.items.map((it,ii)=>(
+                  <div key={ii} className="card" style={{ background:C.white, borderRadius:14, padding:"16px 18px", borderLeft:`4px solid ${group.color}`, boxShadow:"0 2px 16px rgba(13,79,110,.06)" }}>
+                    <p className="pf" style={{ fontSize:18, fontStyle:"italic", color:C.ink, marginBottom:4 }}>{it.name}</p>
+                    <p className="cg" style={{ color:"#3D3A36", fontSize:16, lineHeight:1.6 }}>{it.note}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          <div style={{ marginTop:16, background:`linear-gradient(135deg, ${C.bari}, ${C.polignano})`, borderRadius:16, padding:"22px", textAlign:"center" }}>
+            <p className="cg" style={{ color:"#FDFAF6", fontSize:18, fontStyle:"italic", lineHeight:1.5 }}>You did this one properly — pivoted with the heat, ate where the locals eat, drifted into Francavilla, earned a sea-urchin scar. Not a passenger for one second.</p>
+            <p className="dm" style={{ color:C.sand, fontSize:11, letterSpacing:".2em", textTransform:"uppercase", marginTop:14 }}>Puglia · 29 Aug – 4 Sep · fin</p>
+          </div>
+
+          <p className="cg" style={{ textAlign:"center", color:C.muted, fontSize:15, fontStyle:"italic", marginTop:28, letterSpacing:".05em" }}>a presto 🤍</p>
+        </div>
+      )}
+
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  React.createElement(PugliaApp)
+);
+</script>
+</body>
+</html>
